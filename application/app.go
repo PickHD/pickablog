@@ -3,10 +3,16 @@ package application
 import (
 	"context"
 	"fmt"
+	"time"
 
 	"github.com/PickHD/pickablog/config"
+	"github.com/PickHD/pickablog/helper"
 
 	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/cors"
+	"github.com/gofiber/fiber/v2/middleware/limiter"
+	"github.com/gofiber/fiber/v2/middleware/logger"
+	"github.com/gofiber/fiber/v2/middleware/requestid"
 	pgx "github.com/jackc/pgx/v4"
 	"github.com/sirupsen/logrus"
 )
@@ -25,15 +31,46 @@ func SetupApplication(ctx context.Context) (*App, error) {
 	var err error
 
 	app := &App{}
-	app.Application = fiber.New()
 	app.Context = context.TODO()
 	app.Config = config.LoadConfiguration()
-	app.Logger = logrus.New()
 	if err != nil {
 		return app, err
 	}
+	// custom log app with logrus
+	logWithLogrus := logrus.New()
+	logWithLogrus.Formatter = &logrus.JSONFormatter{}
+	app.Logger = logWithLogrus
 
-	app.Application.Use(func(c *fiber.Ctx) error {
+	// setup fiber in separated func
+	app.Application = setupFiber(fiber.New())
+	
+	app.DB,err = pgx.Connect(context.Background(),fmt.Sprintf("postgres://%s:%s@%s:%d/%s",app.Config.Database.DBUser,app.Config.Database.DBPassword,app.Config.Database.DBHost,app.Config.Database.DBPort,app.Config.Database.DBName))
+	if err != nil {
+		app.Logger.Error("Failed connecting to databases, reason :%v",err)
+		return app,err
+	}
+
+	app.Logger.Info("Success connecting to database...")
+
+	//TODO : instantiate google oauth here
+
+	return app,nil
+}
+
+// setupFiber is function separated for fiber configuration
+func setupFiber(app *fiber.App) *fiber.App {
+	app.Use(logger.New())
+	app.Use(cors.New(cors.Config{
+		AllowHeaders: "Authorization,access_token",
+	}))
+	app.Use(requestid.New())
+	app.Use(limiter.New(limiter.Config{
+		Expiration: 3 * time.Minute,
+		LimitReached: func (ctx *fiber.Ctx) error {
+			return helper.ResponseFormatter[any](ctx,fiber.StatusTooManyRequests,nil,"Too many requests, wait till 3 min",nil)
+		},
+	}))
+	app.Use(func(c *fiber.Ctx) error {
 		// Set some security headers:
 		c.Set("X-XSS-Protection", "1; mode=block")
 		c.Set("X-Content-Type-Options", "nosniff")
@@ -46,17 +83,7 @@ func SetupApplication(ctx context.Context) (*App, error) {
 		return c.Next()
 	})
 
-	app.DB,err = pgx.Connect(context.Background(),fmt.Sprintf("postgres://%s:%s@%s:%d/%s",app.Config.Database.DBUser,app.Config.Database.DBPassword,app.Config.Database.DBHost,app.Config.Database.DBPort,app.Config.Database.DBName))
-	if err != nil {
-		app.Logger.Error("Failed connecting to databases, reason :%v",err)
-		return app,err
-	}
-
-	app.Logger.Info("Success connecting to database...")
-
-	//TODO : instantiate google oauth here
-
-	return app,nil
+	return app
 }
 
 // Close is a function to gracefully close the application
