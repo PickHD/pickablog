@@ -31,7 +31,7 @@ func main() {
 		mode = os.Args[1]
 	}
 
-	// create a context with cancel() callback function
+	// create a context with background for setup the application
 	ctx := context.Background()
 	app, err := application.SetupApplication(ctx)
 	if err != nil {
