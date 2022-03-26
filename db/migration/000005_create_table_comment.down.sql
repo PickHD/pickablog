@@ -1,0 +1,4 @@
+DROP TRIGGER IF EXISTS log_insert_comment ON comments CASCADE;
+DROP TRIGGER IF EXISTS log_update_comment ON comments CASCADE;
+DROP TABLE IF EXISTS comment CASCADE;
+DROP SEQUENCE IF EXISTS comment_seq CASCADE;

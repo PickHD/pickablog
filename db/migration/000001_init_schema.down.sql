@@ -1,0 +1,2 @@
+DROP FUNCTION IF EXISTS log_insert();
+DROP FUNCTION IF EXISTS log_update();
