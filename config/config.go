@@ -30,7 +30,7 @@ type (
 	// Secret configuration
 	Secret struct {
 		GSecret string
-		GClient string
+		GKey string
 	}
 )
 
@@ -65,7 +65,7 @@ func loadDatabase() *Database {
 // loadSecret...
 func loadSecret() *Secret {
 	return &Secret{
-		GClient: helper.GetEnvString("G_CLIENT"),
+		GKey: helper.GetEnvString("G_KEY"),
 		GSecret: helper.GetEnvString("G_SECRET"),
 	}
 }

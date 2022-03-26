@@ -23,6 +23,7 @@ type (
 	}
 )
 
+// HealthCheck service layer to checking database is ok or not
 func (hcs *HealthCheckService) HealthCheck() (bool,error) {
 	ok,err := hcs.HealthCheckRepo.HealthCheck()
 	if err != nil || !ok {

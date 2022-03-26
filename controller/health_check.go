@@ -5,6 +5,7 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
+// HealthCheck controller layer to checking databases is ok or not
 func (hcc *HealthCheckController) HealthCheck(ctx *fiber.Ctx) error {
 	ok,err := hcc.HealthCheckSrv.HealthCheck()
 	if err != nil || !ok {
