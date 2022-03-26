@@ -6,5 +6,4 @@ RESTful API system blog using golang fiber framework
 2. Run ```make postup```
 3. Run ```make dbup```
 4. Run ```make migrate up```
-5. Run ```make data up```
 5. Run ```make run```
