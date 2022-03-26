@@ -60,8 +60,8 @@ func main() {
 
 		if err := httpServer.Listen(fmt.Sprintf(":%d",app.Config.Const.HTTPPort)); err != nil {
 		 	app.Logger.Error("Failed to run app. Error: ", err)
-            panic(err)
-        }
+		    	panic(err)
+		}
 
 	}
 }
