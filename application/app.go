@@ -8,6 +8,7 @@ import (
 	"github.com/PickHD/pickablog/config"
 	"github.com/PickHD/pickablog/helper"
 
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/limiter"
@@ -15,6 +16,8 @@ import (
 	"github.com/gofiber/fiber/v2/middleware/requestid"
 	pgx "github.com/jackc/pgx/v4"
 	"github.com/sirupsen/logrus"
+	"golang.org/x/oauth2"
+	"golang.org/x/oauth2/google"
 )
 
 // App is an wrapper application instance that contains application context, configuration, logger, etc
@@ -24,6 +27,7 @@ type App struct {
 	Config *config.Configuration
 	Logger *logrus.Logger
 	DB *pgx.Conn
+	GConfig *oauth2.Config
 }
 
 // SetupApplication is a function to create application instance
@@ -52,7 +56,13 @@ func SetupApplication(ctx context.Context) (*App, error) {
 
 	app.Logger.Info("Success connecting to database...")
 
-	//TODO : instantiate google oauth here
+	app.GConfig = &oauth2.Config{
+		RedirectURL: app.Config.Const.GRedirectURL,
+		ClientID: app.Config.Secret.GKey,
+		ClientSecret: app.Config.Secret.GSecret,
+		Scopes: []string{"email","profile"},
+		Endpoint: google.Endpoint,
+	}
 
 	return app,nil
 }
