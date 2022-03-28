@@ -16,6 +16,8 @@ type (
 	Constants struct {
 		HTTPPort int
 		ENV string
+		JWTExpire int
+		GRedirectURL string
 	}
 
 	// Database configuration
@@ -31,6 +33,7 @@ type (
 	Secret struct {
 		GSecret string
 		GKey string
+		JWTSecret string
 	}
 )
 
@@ -48,6 +51,8 @@ func loadConstants() *Constants {
 	return &Constants{
 		HTTPPort: helper.GetEnvInt("PORT"),
 		ENV: helper.GetEnvString("ENV"),
+		JWTExpire: helper.GetEnvInt("JWT_EXPIRE"),
+		GRedirectURL: helper.GetEnvString("G_REDIRECT_URL"),
 	}
 }
 
@@ -67,5 +72,6 @@ func loadSecret() *Secret {
 	return &Secret{
 		GKey: helper.GetEnvString("G_KEY"),
 		GSecret: helper.GetEnvString("G_SECRET"),
+		JWTSecret: helper.GetEnvString("JWT_SECRET"),
 	}
 }
