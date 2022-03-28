@@ -3,7 +3,6 @@ package infrastructure
 import (
 	"github.com/PickHD/pickablog/application"
 	"github.com/PickHD/pickablog/helper"
-
 	"github.com/gofiber/fiber/v2"
 )
 
