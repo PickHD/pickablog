@@ -3,11 +3,9 @@ package infrastructure
 import (
 	"github.com/PickHD/pickablog/application"
 	"github.com/PickHD/pickablog/helper"
-	appware "github.com/PickHD/pickablog/middleware"
+	"github.com/PickHD/pickablog/middleware"
 
 	"github.com/gofiber/fiber/v2"
-	_ "github.com/gofiber/jwt/v3"
-
 )
 
 // ServeHTTP is wrapper function to start the apps infra in HTTP mode
@@ -33,19 +31,9 @@ func setupRouter(app *application.App) {
 			v1.Get("/health",dep.HealthCheckController.HealthCheck)
 			v1.Options("/health",helper.OptionsHandler)
 
-			// UNPROTECTED ROUTE HERE
-			v1.Get("/test-protecc",appware.Chain(dep.HealthCheckController.HealthCheck,appware.ValidateJWTMiddleware))
-			
-			// v1.Use(jwtware.New(jwtware.Config{
-			// 	SigningKey: []byte(app.Config.Secret.JWTSecret),
-			// }))
-
-			// PROTECTED ROUTE HERE
-
-			
+			v1.Get("/test-protecc",middleware.Chain(dep.HealthCheckController.HealthCheck,middleware.ValidateJWTMiddleware))
+			v1.Options("test-protecc",helper.OptionsHandler)
 		}
-
-	
 	}
 	
 	// handler for route not found
