@@ -26,5 +26,5 @@ func ResponseFormatter [T any] (ctx *fiber.Ctx,statusCode int, err error, messag
 	})
 }
 
-// OptionsHandler will handing preflight 
+// OptionsHandler will handing preflight requests
 func OptionsHandler (ctx *fiber.Ctx) error {return nil}
