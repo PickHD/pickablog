@@ -14,4 +14,13 @@ var (
 	
 	// ErrTypeAssertion occurs when doing invalid type assertion
 	ErrTypeAssertion = errors.New("type assertion error")
+
+	// ErrFailedParseBody occurs when failed parsing body
+	ErrFailedParseBody = errors.New("parse body error")
+
+	// ErrInvalidRequets occurs when client sent invalid request body
+	ErrInvalidRequest = errors.New("invalid request body")
+
+	// ErrEmailExisted occurs when email already used / inside database
+	ErrEmailExisted = errors.New("email is existed")
 )

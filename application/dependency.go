@@ -9,12 +9,14 @@ import (
 // Dependency can contain anything that will provide data for controller layer
 type Dependency struct {
 	HealthCheckController controller.IHealthCheckController
+	AuthController controller.IAuthController
 }
 
 // SetupDependencyInjection is a function to set up dependencies 
 func SetupDependencyInjection(app *App) *Dependency {
 	return &Dependency{
 		HealthCheckController: setupHealthCheckDependency(app),
+		AuthController: setupAuthDependency(app),
 	}
 }
 
@@ -27,7 +29,7 @@ func setupHealthCheckDependency(app *App) *controller.HealthCheckController {
 		DB: app.DB,
 	}
 
-	healthCheckSrv := &service.HealthCheckService{
+	healthCheckSvc := &service.HealthCheckService{
 		Context: app.Context,
 		Config: app.Config,
 		Logger: app.Logger,
@@ -38,8 +40,34 @@ func setupHealthCheckDependency(app *App) *controller.HealthCheckController {
 		Context: app.Context,
 		Config: app.Config,
 		Logger: app.Logger,
-		HealthCheckSrv: healthCheckSrv,
+		HealthCheckSvc: healthCheckSvc,
 	}
 
 	return healthCheckCtrl
+}
+
+// setupAuthDependency is a function to set up dependencies to be used inside auth controller layer
+func setupAuthDependency(app *App) *controller.AuthController {
+	authRepo := &repository.AuthRepository{
+		Context: app.Context,
+		Config: app.Config,
+		Logger: app.Logger,
+		DB: app.DB,
+	}
+
+	authSvc := &service.AuthService{
+		Context: app.Context,
+		Config: app.Config,
+		Logger: app.Logger,
+		AuthRepo: authRepo,
+	}
+
+	authCtrl := &controller.AuthController{
+		Context: app.Context,
+		Config: app.Config,
+		Logger: app.Logger,
+		AuthSvc: authSvc,
+	}
+
+	return authCtrl
 }

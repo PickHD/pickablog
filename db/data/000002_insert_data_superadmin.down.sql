@@ -1,0 +1,1 @@
+DELETE FROM "user" WHERE email = "pickablogadmin@gmail.com";

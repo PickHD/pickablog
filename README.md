@@ -1,9 +1,24 @@
-# pickablog
-RESTful API system blog using golang fiber framework
+# PickABlog
+**RESTful API system blog using Golang Fiber**
 
-## Setup Development (_make sure already installed docker on you machine_)
-1. Run ```make deps```
-2. Run ```make postup```
-3. Run ```make dbup```
-4. Run ```make migrate up```
-5. Run ```make run```
+## Setup Development
+1. Install/Update/Delete packages, run :
+    ```
+    $ make deps
+    ```
+2. Creating docker container postgresql, run :
+    ```
+    $ make postup
+    ```
+3. Create new databases, run : 
+    ```
+    $ make dbup
+    ```
+4. Migrate table, run :
+    ```
+    $ make migrate up
+    ```
+5. Finally run _based on env_ :
+    ```
+    $ make run
+    ```

@@ -28,11 +28,14 @@ func setupRouter(app *application.App) {
 		{
 			v1.Get("/health",dep.HealthCheckController.HealthCheck)
 			v1.Options("/health",helper.OptionsHandler)
+
+			v1.Post("/auth/register-author",dep.AuthController.RegisterAuthor)
+			v1.Options("/auth/register-author",helper.OptionsHandler)
 		}
 	}
 	
 	// handler for route not found
 	app.Application.Use(func(c *fiber.Ctx) error {
-   	 	return helper.ResponseFormatter[any](c,404,nil,"Route not found",nil)
+   	 	return helper.ResponseFormatter[any](c,fiber.StatusNotFound,nil,"Route not found",nil)
 	})
 }
