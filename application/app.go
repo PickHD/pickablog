@@ -71,7 +71,7 @@ func SetupApplication(ctx context.Context) (*App, error) {
 func setupFiber(app *fiber.App) *fiber.App {
 	app.Use(logger.New())
 	app.Use(cors.New(cors.Config{
-		AllowHeaders: "Authorization,access_token",
+		AllowHeaders: "Authorization",
 	}))
 	app.Use(requestid.New())
 	app.Use(limiter.New(limiter.Config{

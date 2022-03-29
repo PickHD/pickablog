@@ -1,5 +1,15 @@
 package model
 
+import "regexp"
+
+var (
+	// KeyJWTValidAccess is context key identifier for valid jwt token
+	KeyJWTValidAccess = "ValidJWTAccess"
+
+	// IsAllowedEmailInput is regex validator to allowing only valid email
+	IsAllowedEmailInput *regexp.Regexp
+)
+
 type (
 	// AuthDetails consist data authorized users
 	AuthUserDetails struct {
@@ -9,9 +19,15 @@ type (
 		RoleName string `db:"name" json:"role_name"`
 	}
 
+	// RegisterAuthorRequest consist data for register as a author
+	RegisterAuthorRequest struct {
+		FullName string `json:"full_name"`
+		Email string `json:"email"`
+		Password string `json:"password"`
+	}
+
 )
 
-var (
-	// KeyJWTValidAccess is context key identifier for valid jwt token
-	KeyJWTValidAccess = "ValidJWTAccess"
-)
+func init() {
+	IsAllowedEmailInput = regexp.MustCompile(`^[^\s@]+@([^\s@.,]+\.)+[^\s@.,]{2,}$`)
+}
