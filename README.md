@@ -6,9 +6,9 @@
     ```
     $ make deps
     ```
-2. Creating docker container postgresql, run :
+2. Creating docker container postgresql & redis, run :
     ```
-    $ make postup
+    $ make postup && make redsup
     ```
 3. Create new databases, run : 
     ```
@@ -18,7 +18,7 @@
     ```
     $ make migrate up
     ```
-5. Finally run _based on env_ :
+5. Finally run _based on mode (local/http)_ :
     ```
-    $ make run
+    $ make run local
     ```

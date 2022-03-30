@@ -3,12 +3,13 @@ package application
 import (
 	"context"
 	"fmt"
+	"net/http"
 	"time"
 
 	"github.com/PickHD/pickablog/config"
 	"github.com/PickHD/pickablog/helper"
 
-
+	"github.com/go-redis/redis/v8"
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
 	"github.com/gofiber/fiber/v2/middleware/limiter"
@@ -28,6 +29,8 @@ type App struct {
 	Logger *logrus.Logger
 	DB *pgx.Conn
 	GConfig *oauth2.Config
+	Redis *redis.Client
+	HTTPClient *http.Client
 }
 
 // SetupApplication is a function to create application instance
@@ -54,15 +57,23 @@ func SetupApplication(ctx context.Context) (*App, error) {
 		return app,err
 	}
 
-	app.Logger.Info("Success connecting to database...")
-
 	app.GConfig = &oauth2.Config{
 		RedirectURL: app.Config.Const.GRedirectURL,
-		ClientID: app.Config.Secret.GKey,
-		ClientSecret: app.Config.Secret.GSecret,
-		Scopes: []string{"email","profile"},
+		ClientID: app.Config.Secret.GClientID,
+		ClientSecret: app.Config.Secret.GClientSecret,
+		Scopes: []string{"https://www.googleapis.com/auth/userinfo.profile","https://www.googleapis.com/auth/userinfo.email"},
 		Endpoint: google.Endpoint,
 	}
+	
+	app.Redis = redis.NewClient(&redis.Options{
+		Addr: fmt.Sprintf("%s:%d",app.Config.Redis.RDBHost,app.Config.Redis.RDBPort),
+		DB: 0,
+		Password: "",
+	})
+
+	app.Logger.Info("Success connecting to database and redis...")
+
+	app.HTTPClient = &http.Client{}
 
 	return app,nil
 }

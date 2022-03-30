@@ -21,10 +21,12 @@ type (
 )
 
 const (
-	payloadFullName = "full_name"
-	payloadEmail = "email"
-	payloadRoleName = "role_name"
-	payloadExpires = "exp"
+	payloadFullName string = "full_name"
+	payloadEmail string = "email"
+	payloadRoleName string = "role_name"
+	payloadExpires string = "exp"
+
+	JWTExpire time.Duration = time.Duration(7) * time.Hour
 )
 
 // BuildJWT return signed claims token JWT with defined expiration times in configuration 
@@ -33,9 +35,9 @@ func BuildJWT(cfg *config.Configuration, user *model.AuthUserDetails) (string,er
 	claims[payloadFullName] = user.FullName
 	claims[payloadEmail] = user.Email
 	claims[payloadRoleName] = user.RoleName
-	claims[payloadExpires] = time.Now().Add(time.Duration(cfg.Const.JWTExpire)).Unix()
+	claims[payloadExpires] = time.Now().Add(JWTExpire).Unix()
 
-	token := jwt.NewWithClaims(jwt.SigningMethodES256,claims)
+	token := jwt.NewWithClaims(jwt.SigningMethodHS256,claims)
 
 	signedToken,err := token.SignedString([]byte(cfg.Secret.JWTSecret))
 	if err != nil {
@@ -81,6 +83,16 @@ func ValidateJWT(ctx *fiber.Ctx) (DecodePayloadData, error) {
 	}
 
 	return decodePayload,nil
+}
+
+// ExtractPayloadJWT will extracting payload data from ctx.Locals
+func ExtractPayloadJWT(data interface{}) (DecodePayloadData, error) {
+	extractData,ok := data.(DecodePayloadData)
+	if !ok {
+		return DecodePayloadData{},model.ErrTypeAssertion
+	}
+
+	return extractData,nil
 }
 
 // insertPayloadJWT will inserting data from decoded payload into defined struct

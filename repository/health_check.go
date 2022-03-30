@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/PickHD/pickablog/config"
+	"github.com/go-redis/redis/v8"
 	"github.com/jackc/pgx/v4"
 	"github.com/sirupsen/logrus"
 )
@@ -20,14 +21,19 @@ type (
 		Config *config.Configuration
 		Logger *logrus.Logger
 		DB *pgx.Conn
+		Redis *redis.Client
 	}
 )
 
-// HealthCheck pinging the databases is OK or not
+// HealthCheck pinging the databases & redis is OK or not
 func (hcr *HealthCheckRepository) HealthCheck() (bool,error) {
 	if err := hcr.DB.Ping(hcr.Context); err != nil {
 		return false,err
 	}
 
+	if err := hcr.Redis.Ping(hcr.Context).Err(); err != nil {
+		return false,err
+	}
+	
 	return true,nil
 }

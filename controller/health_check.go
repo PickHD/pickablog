@@ -6,7 +6,7 @@ import (
 	"github.com/PickHD/pickablog/config"
 	"github.com/PickHD/pickablog/helper"
 	"github.com/PickHD/pickablog/service"
-	
+
 	"github.com/gofiber/fiber/v2"
 	"github.com/sirupsen/logrus"
 )
