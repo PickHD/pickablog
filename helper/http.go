@@ -9,7 +9,7 @@ func ResponseFormatter [T any] (ctx *fiber.Ctx,statusCode int, err error, messag
 	ctx.Accepts("application/json")
 
 	if statusCode < 400 {
-		return ctx.JSON(&fiber.Map{
+		return ctx.Status(statusCode).JSON(&fiber.Map{
 			"status_code": statusCode,
 			"message":message,
 			"error":nil,
@@ -18,7 +18,7 @@ func ResponseFormatter [T any] (ctx *fiber.Ctx,statusCode int, err error, messag
 		
 	}
 
-	return ctx.JSON(&fiber.Map{
+	return ctx.Status(statusCode).JSON(&fiber.Map{
 		"status_code": statusCode,
 		"message":message,
 		"error": err,

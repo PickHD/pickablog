@@ -23,4 +23,16 @@ var (
 
 	// ErrEmailExisted occurs when email already used / inside database
 	ErrEmailExisted = errors.New("email is existed")
+
+	// ErrRedisKeyNotExisted occurs when key provided is not existed
+	ErrRedisKeyNotExisted = errors.New("keys not existed")
+
+	// ErrInvalidExchange occurs when client sent invalid state & code
+	ErrInvalidExchange = errors.New("invalid exchange")
+
+	// ErrRoleNotExisted occurs when role provided is not existed
+	ErrRoleNotExisted = errors.New("role not existed")
+
+	// ErrForbidenAccess occurs when user trying to access forbidden resource
+	ErrForbiddenAccess = errors.New("forbidden access")
 )

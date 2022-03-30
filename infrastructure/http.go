@@ -3,6 +3,7 @@ package infrastructure
 import (
 	"github.com/PickHD/pickablog/application"
 	"github.com/PickHD/pickablog/helper"
+	_ "github.com/PickHD/pickablog/middleware"
 	"github.com/gofiber/fiber/v2"
 )
 
@@ -29,8 +30,17 @@ func setupRouter(app *application.App) {
 			v1.Get("/health",dep.HealthCheckController.HealthCheck)
 			v1.Options("/health",helper.OptionsHandler)
 
-			v1.Post("/auth/register-author",dep.AuthController.RegisterAuthor)
-			v1.Options("/auth/register-author",helper.OptionsHandler)
+			v1.Post("/auth/register",dep.AuthController.RegisterAuthor)
+			v1.Options("/auth/register",helper.OptionsHandler)
+
+			v1.Get("/auth/google/login",dep.AuthController.GoogleLogin)
+			v1.Options("/auth/google/login",helper.OptionsHandler)
+
+			v1.Get("/auth/google/callback",dep.AuthController.GoogleLoginCallback)
+			v1.Options("/auth/google/callback",helper.OptionsHandler)
+
+			// v1.Post("/auth/login")
+			// v1.Options("/auth/login",helper.OptionsHandler)
 		}
 	}
 	

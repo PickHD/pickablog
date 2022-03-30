@@ -3,6 +3,7 @@ package application
 import (
 	"github.com/PickHD/pickablog/controller"
 	"github.com/PickHD/pickablog/repository"
+	"github.com/PickHD/pickablog/requester"
 	"github.com/PickHD/pickablog/service"
 )
 
@@ -27,6 +28,7 @@ func setupHealthCheckDependency(app *App) *controller.HealthCheckController {
 		Config: app.Config,
 		Logger: app.Logger,
 		DB: app.DB,
+		Redis: app.Redis,
 	}
 
 	healthCheckSvc := &service.HealthCheckService{
@@ -48,11 +50,21 @@ func setupHealthCheckDependency(app *App) *controller.HealthCheckController {
 
 // setupAuthDependency is a function to set up dependencies to be used inside auth controller layer
 func setupAuthDependency(app *App) *controller.AuthController {
+	// init requester
+	GOAuthReq := &requester.OAuthGoogle{
+		Context: app.Context,
+		Config: app.Config,
+		Logger: app.Logger,
+		GConfig: app.GConfig,
+		HTTPClient: app.HTTPClient,
+	}
+
 	authRepo := &repository.AuthRepository{
 		Context: app.Context,
 		Config: app.Config,
 		Logger: app.Logger,
 		DB: app.DB,
+		Redis: app.Redis,
 	}
 
 	authSvc := &service.AuthService{
@@ -60,6 +72,8 @@ func setupAuthDependency(app *App) *controller.AuthController {
 		Config: app.Config,
 		Logger: app.Logger,
 		AuthRepo: authRepo,
+		GConfig: app.GConfig,
+		GOAuthReq: GOAuthReq,
 	}
 
 	authCtrl := &controller.AuthController{

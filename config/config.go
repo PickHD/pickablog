@@ -9,6 +9,7 @@ type (
 	Configuration struct {
 		Const *Constants
 		Database *Database
+		Redis *Redis
 		Secret *Secret
 	}
 
@@ -16,8 +17,8 @@ type (
 	Constants struct {
 		HTTPPort int
 		ENV string
-		JWTExpire int
 		GRedirectURL string
+		OauthGoogleAPIURL string
 	}
 
 	// Database configuration
@@ -29,10 +30,16 @@ type (
 		DBName string
 	}
 
+	Redis struct {
+		RDBHost string
+		RDBPort int
+		RDBExpire int
+	}
+
 	// Secret configuration
 	Secret struct {
-		GSecret string
-		GKey string
+		GClientSecret string
+		GClientID string
 		JWTSecret string
 	}
 )
@@ -42,6 +49,7 @@ func LoadConfiguration() *Configuration {
 	return &Configuration{
 		Const: loadConstants(),
 		Database: loadDatabase(),
+		Redis: loadRedis(),
 		Secret: loadSecret(),
 	}
 }
@@ -51,8 +59,8 @@ func loadConstants() *Constants {
 	return &Constants{
 		HTTPPort: helper.GetEnvInt("PORT"),
 		ENV: helper.GetEnvString("ENV"),
-		JWTExpire: helper.GetEnvInt("JWT_EXPIRE"),
 		GRedirectURL: helper.GetEnvString("G_REDIRECT_URL"),
+		OauthGoogleAPIURL: helper.GetEnvString("OAUTH_G_API_URL"),
 	}
 }
 
@@ -67,11 +75,20 @@ func loadDatabase() *Database {
 	}
 }
 
+// loadRedis...
+func loadRedis() *Redis {
+	return &Redis{
+		RDBHost: helper.GetEnvString("RDB_HOST"),
+		RDBPort: helper.GetEnvInt("RDB_PORT"),
+		RDBExpire: helper.GetEnvInt("RDB_EXPIRE"),
+	}
+}
+
 // loadSecret...
 func loadSecret() *Secret {
 	return &Secret{
-		GKey: helper.GetEnvString("G_KEY"),
-		GSecret: helper.GetEnvString("G_SECRET"),
+		GClientID: helper.GetEnvString("G_CLIENT_ID"),
+		GClientSecret: helper.GetEnvString("G_CLIENT_SECRET"),
 		JWTSecret: helper.GetEnvString("JWT_SECRET"),
 	}
 }
