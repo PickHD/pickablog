@@ -18,6 +18,7 @@ type (
 		RegisterAuthor(ctx *fiber.Ctx) error
 		GoogleLogin(ctx *fiber.Ctx) error
 		GoogleLoginCallback(ctx *fiber.Ctx) error
+		Login(ctx *fiber.Ctx) error
 	}
 
 	// AuthController is an app auth struct that consists of all the dependencies needed for auth controller
@@ -69,6 +70,30 @@ func (ac *AuthController) GoogleLoginCallback(ctx *fiber.Ctx) error {
 
 	jwt,err := ac.AuthSvc.GoogleLoginCallbackSvc(getState,getCode)
 	if err != nil {
+		return helper.ResponseFormatter[any](ctx,fiber.StatusInternalServerError,err,err.Error(),nil)
+	}
+
+	return helper.ResponseFormatter[any](ctx,fiber.StatusOK,nil,"Success Login",jwt)
+}
+
+// Login respoinsible to log-in data from controller layer
+func (ac *AuthController) Login(ctx *fiber.Ctx) error {
+	var loginReq model.LoginRequest
+
+	if err := ctx.BodyParser(&loginReq); err != nil {
+		return helper.ResponseFormatter[any](ctx,fiber.StatusBadRequest,err,model.ErrFailedParseBody.Error(),nil)
+	}
+
+	jwt,err := ac.AuthSvc.LoginSvc(loginReq)
+	if err != nil {
+		if errors.Is(err,model.ErrUserNotFound) {
+			return helper.ResponseFormatter[any](ctx,fiber.StatusNotFound,err,err.Error(),nil)
+		}
+
+		if errors.Is(err,model.ErrInvalidRequest) || errors.Is(err,model.ErrInvalidPassword) || errors.Is(err,model.ErrMismatchLogin) {
+			return helper.ResponseFormatter[any](ctx,fiber.StatusBadRequest,err,err.Error(),nil)
+		}
+
 		return helper.ResponseFormatter[any](ctx,fiber.StatusInternalServerError,err,err.Error(),nil)
 	}
 

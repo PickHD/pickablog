@@ -17,16 +17,20 @@ var (
 
 	// ErrFailedParseBody occurs when failed parsing body
 	ErrFailedParseBody = errors.New("parse body error")
-
 	// ErrInvalidRequets occurs when client sent invalid request body
 	ErrInvalidRequest = errors.New("invalid request body")
 
 	// ErrEmailExisted occurs when email already used / inside database
 	ErrEmailExisted = errors.New("email is existed")
+	// ErrUserNotFound occurs when user is not found in databases
+	ErrUserNotFound = errors.New("users is not found")
+	// ErrInvalidPassword occurs when password user inputed is invalid
+	ErrInvalidPassword = errors.New("invalid password")
+	// ErrMismatchLogin occurs when user trying mismatch login method
+	ErrMismatchLogin = errors.New("mismatch login, please use endpoint /api/v1/auth/google/login")
 
 	// ErrRedisKeyNotExisted occurs when key provided is not existed
 	ErrRedisKeyNotExisted = errors.New("keys not existed")
-
 	// ErrInvalidExchange occurs when client sent invalid state & code
 	ErrInvalidExchange = errors.New("invalid exchange")
 

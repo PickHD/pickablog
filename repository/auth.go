@@ -51,6 +51,7 @@ func (ar *AuthRepository) GetUserByEmail(email string) (*model.AuthUserDetails,e
 	q := `SELECT 
 		u.full_name,
 		u.email,
+		u.password,
 		r.id,
 		r.name FROM "user" u 
 		LEFT JOIN role r ON r.id = u.role_id 
@@ -58,7 +59,7 @@ func (ar *AuthRepository) GetUserByEmail(email string) (*model.AuthUserDetails,e
 	`
 
 	row := ar.DB.QueryRow(ar.Context,q,email)
-	err := row.Scan(&authUserDetail.FullName,&authUserDetail.Email,&authUserDetail.RoleID,&authUserDetail.RoleName)
+	err := row.Scan(&authUserDetail.FullName,&authUserDetail.Email,&authUserDetail.Password,&authUserDetail.RoleID,&authUserDetail.RoleName)
 	if err != nil {
 		if err == pgx.ErrNoRows {
 			ar.Logger.Info(fmt.Errorf("AuthRepository.GetUserByEmail INFO : %v MSG : %s",err,err.Error()))

@@ -39,8 +39,8 @@ func setupRouter(app *application.App) {
 			v1.Get("/auth/google/callback",dep.AuthController.GoogleLoginCallback)
 			v1.Options("/auth/google/callback",helper.OptionsHandler)
 
-			// v1.Post("/auth/login")
-			// v1.Options("/auth/login",helper.OptionsHandler)
+			v1.Post("/auth/login",dep.AuthController.Login)
+			v1.Options("/auth/login",helper.OptionsHandler)
 		}
 	}
 	

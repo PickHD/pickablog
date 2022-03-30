@@ -23,6 +23,7 @@ type (
 		Create(user model.CreateUserRequest) error
 		GoogleLoginSvc() (string,error)
 		GoogleLoginCallbackSvc(state string, code string) (*model.SuccessLoginResponse,error)
+		LoginSvc(user model.LoginRequest) (*model.SuccessLoginResponse,error)
 	}
 
 	// AuthService is an app auth struct that consists of all the dependencies needed for auth service
@@ -144,12 +145,59 @@ func (as *AuthService) GoogleLoginCallbackSvc(state string,code string) (*model.
 	},nil
 }
 
+// LoginSvc service layer for handling user login (author,superadmin)
+func (as *AuthService) LoginSvc(user model.LoginRequest) (*model.SuccessLoginResponse,error) {
+	err := validateLoginRequest(&user)
+	if err != nil {
+		return nil,err
+	}
+
+	getUser,err := as.AuthRepo.GetUserByEmail(user.Email)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return nil,model.ErrUserNotFound
+		}
+
+		return nil,err
+	}
+
+	// when password is null, this user is using OAUTH login method
+	if getUser.Password == "" {
+		return nil,model.ErrMismatchLogin
+	}
+
+	if !helper.CheckPasswordHash(getUser.Password,user.Password) {
+		return nil,model.ErrInvalidPassword
+	}
+
+	jwt,err := util.BuildJWT(as.Config,getUser)
+	if err != nil {
+		as.Logger.Error(fmt.Errorf("AuthService.BuildJWT ERROR : %v MSG : %s",err,err.Error()))
+		return nil,err
+	}
+	
+	return &model.SuccessLoginResponse{
+		AccessToken: jwt,
+		ExpiredAt: time.Now().Add(util.JWTExpire),
+		Role: getUser.RoleName,
+	},nil
+}
+
 // validateRegisterAuthorRequest responsible to validating request register author
 func validateRegisterAuthorRequest(user *model.CreateUserRequest) error {
 	if len(user.FullName) < 5 || len(user.Password) < 5{
 		return model.ErrInvalidRequest
 	}
 
+	if !model.IsAllowedEmailInput.MatchString(user.Email) {
+		return model.ErrInvalidRequest
+	}
+
+	return nil
+}
+
+// validateLoginRequest responsible to validating request login data
+func validateLoginRequest(user *model.LoginRequest) error {
 	if !model.IsAllowedEmailInput.MatchString(user.Email) {
 		return model.ErrInvalidRequest
 	}
