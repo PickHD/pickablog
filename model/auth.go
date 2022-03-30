@@ -20,11 +20,18 @@ type (
 		Email string `db:"email" json:"email"`
 		RoleID int `db:"id" json:"role_id"`
 		RoleName string `db:"name" json:"role_name"`
+		Password string `db:"password" json:"-"`
 	}
 
 	// CreateUserRequest consist data for creating a user
 	CreateUserRequest struct {
 		FullName string `json:"full_name"`
+		Email string `json:"email"`
+		Password string `json:"password"`
+	}
+
+	// LoginRequest consist data for log-in a user
+	LoginRequest struct {
 		Email string `json:"email"`
 		Password string `json:"password"`
 	}
