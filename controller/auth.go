@@ -35,25 +35,25 @@ func (ac *AuthController) RegisterAuthor(ctx *fiber.Ctx) error {
 	var regAuthorReq model.CreateUserRequest
 
 	if err := ctx.BodyParser(&regAuthorReq); err != nil {
-		return helper.ResponseFormatter[any](ctx,fiber.StatusBadRequest,err,model.ErrFailedParseBody.Error(),nil)
+		return helper.ResponseFormatter[any](ctx,fiber.StatusBadRequest,err,model.ErrFailedParseBody.Error(),nil,nil)
 	}
 	
 	err := ac.AuthSvc.Create(regAuthorReq)
 	if err != nil {
 		if errors.Is(err,model.ErrInvalidRequest) || errors.Is(err,model.ErrEmailExisted) {
-			return helper.ResponseFormatter[any](ctx,fiber.StatusBadRequest,err,err.Error(),nil)
+			return helper.ResponseFormatter[any](ctx,fiber.StatusBadRequest,err,err.Error(),nil,nil)
 		}
-		return helper.ResponseFormatter[any](ctx,fiber.StatusInternalServerError,err,err.Error(),nil)
+		return helper.ResponseFormatter[any](ctx,fiber.StatusInternalServerError,err,err.Error(),nil,nil)
 	}
 
-	return helper.ResponseFormatter[any](ctx,fiber.StatusCreated,nil,"Successfully register as author",nil)
+	return helper.ResponseFormatter[any](ctx,fiber.StatusCreated,nil,"Successfully register as author",nil,nil)
 }
 
 // GoogleLogin responsible to handling redirect to google auth services from controller layer
 func (ac *AuthController) GoogleLogin(ctx *fiber.Ctx) error {
 	url,err := ac.AuthSvc.GoogleLoginSvc()
 	if err != nil {
-		return helper.ResponseFormatter[any](ctx,fiber.StatusInternalServerError,err,err.Error(),nil)
+		return helper.ResponseFormatter[any](ctx,fiber.StatusInternalServerError,err,err.Error(),nil,nil)
 	}
 
 	return ctx.Redirect(url)
@@ -65,37 +65,37 @@ func (ac *AuthController) GoogleLoginCallback(ctx *fiber.Ctx) error {
 	getCode := ctx.Query("code","")
 
 	if len(getState) <= 0 || len(getCode) <= 0 {
-		return helper.ResponseFormatter[any](ctx,fiber.StatusNotAcceptable,model.ErrInvalidExchange,model.ErrInvalidExchange.Error(),nil)
+		return helper.ResponseFormatter[any](ctx,fiber.StatusNotAcceptable,model.ErrInvalidExchange,model.ErrInvalidExchange.Error(),nil,nil)
 	}
 
 	jwt,err := ac.AuthSvc.GoogleLoginCallbackSvc(getState,getCode)
 	if err != nil {
-		return helper.ResponseFormatter[any](ctx,fiber.StatusInternalServerError,err,err.Error(),nil)
+		return helper.ResponseFormatter[any](ctx,fiber.StatusInternalServerError,err,err.Error(),nil,nil)
 	}
 
-	return helper.ResponseFormatter[any](ctx,fiber.StatusOK,nil,"Success Login",jwt)
+	return helper.ResponseFormatter[any](ctx,fiber.StatusOK,nil,"Success Login",jwt,nil)
 }
 
-// Login respoinsible to log-in data from controller layer
+// Login responsible to log-in data from controller layer
 func (ac *AuthController) Login(ctx *fiber.Ctx) error {
 	var loginReq model.LoginRequest
 
 	if err := ctx.BodyParser(&loginReq); err != nil {
-		return helper.ResponseFormatter[any](ctx,fiber.StatusBadRequest,err,model.ErrFailedParseBody.Error(),nil)
+		return helper.ResponseFormatter[any](ctx,fiber.StatusBadRequest,err,model.ErrFailedParseBody.Error(),nil,nil)
 	}
 
 	jwt,err := ac.AuthSvc.LoginSvc(loginReq)
 	if err != nil {
 		if errors.Is(err,model.ErrUserNotFound) {
-			return helper.ResponseFormatter[any](ctx,fiber.StatusNotFound,err,err.Error(),nil)
+			return helper.ResponseFormatter[any](ctx,fiber.StatusNotFound,err,err.Error(),nil,nil)
 		}
 
 		if errors.Is(err,model.ErrInvalidRequest) || errors.Is(err,model.ErrInvalidPassword) || errors.Is(err,model.ErrMismatchLogin) {
-			return helper.ResponseFormatter[any](ctx,fiber.StatusBadRequest,err,err.Error(),nil)
+			return helper.ResponseFormatter[any](ctx,fiber.StatusBadRequest,err,err.Error(),nil,nil)
 		}
 
-		return helper.ResponseFormatter[any](ctx,fiber.StatusInternalServerError,err,err.Error(),nil)
+		return helper.ResponseFormatter[any](ctx,fiber.StatusInternalServerError,err,err.Error(),nil,nil)
 	}
 
-	return helper.ResponseFormatter[any](ctx,fiber.StatusOK,nil,"Success Login",jwt)
+	return helper.ResponseFormatter[any](ctx,fiber.StatusOK,nil,"Success Login",jwt,nil)
 }

@@ -1,11 +1,12 @@
 package helper
 
 import (
+	"github.com/PickHD/pickablog/model"
 	"github.com/gofiber/fiber/v2"
 )
 
 // ResponseFormatter returning formatted JSON responses
-func ResponseFormatter [T any] (ctx *fiber.Ctx,statusCode int, err error, message string, data T) error {
+func ResponseFormatter [T any] (ctx *fiber.Ctx,statusCode int, err error, message string, data T,meta *model.Metadata) error {
 	ctx.Accepts("application/json")
 
 	if statusCode < 400 {
@@ -14,6 +15,7 @@ func ResponseFormatter [T any] (ctx *fiber.Ctx,statusCode int, err error, messag
 			"message":message,
 			"error":nil,
 			"data": data,
+			"meta": meta,
 		})
 		
 	}
@@ -23,6 +25,7 @@ func ResponseFormatter [T any] (ctx *fiber.Ctx,statusCode int, err error, messag
 		"message":message,
 		"error": err,
 		"data": nil,
+		"meta": nil,
 	})
 }
 

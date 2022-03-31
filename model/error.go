@@ -20,8 +20,11 @@ var (
 	// ErrInvalidRequets occurs when client sent invalid request body
 	ErrInvalidRequest = errors.New("invalid request body")
 
-	// ErrEmailExisted occurs when email already used / inside database
+	// ErrEmailExisted occurs when email already used inside database
 	ErrEmailExisted = errors.New("email is existed")
+	// ErrTagNameExisted occurs when tag name already created inside database
+	ErrTagNameExisted = errors.New("tag is existed")
+
 	// ErrUserNotFound occurs when user is not found in databases
 	ErrUserNotFound = errors.New("users is not found")
 	// ErrInvalidPassword occurs when password user inputed is invalid
