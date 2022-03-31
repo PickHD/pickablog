@@ -54,7 +54,7 @@ func SetupApplication(ctx context.Context) (*App, error) {
 	
 	app.DB,err = pgx.Connect(context.Background(),fmt.Sprintf("postgres://%s:%s@%s:%d/%s",app.Config.Database.DBUser,app.Config.Database.DBPassword,app.Config.Database.DBHost,app.Config.Database.DBPort,app.Config.Database.DBName))
 	if err != nil {
-		app.Logger.Error("Failed connecting to databases, reason :%v",err)
+		app.Logger.Error("Failed connecting to databases, reason ",err)
 		return app,err
 	}
 
@@ -111,7 +111,23 @@ func setupFiber(app *fiber.App) *fiber.App {
 // Close is a function to gracefully close the application
 func (app *App) Close() {
 	if app.DB != nil {
-		app.DB.Close(context.Background())
+		err := app.DB.Close(context.Background())
+		if err != nil {
+			app.Logger.Error("Failed close database connection ",err)
+			panic(err)
+		}
+	}
+
+	if app.Redis != nil {
+		err := app.Redis.Close()
+		if err != nil {
+			app.Logger.Error("Failed close redis connection ", err)
+			panic(err)
+		}
+	}
+
+	if app.HTTPClient != nil {
+		app.HTTPClient.CloseIdleConnections()
 	}
 
 	app.Logger.Info("APP SUCCESSFULLY CLOSED")
