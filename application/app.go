@@ -46,6 +46,7 @@ func SetupApplication(ctx context.Context) (*App, error) {
 	// custom log app with logrus
 	logWithLogrus := logrus.New()
 	logWithLogrus.Formatter = &logrus.JSONFormatter{}
+	logWithLogrus.ReportCaller = true
 	app.Logger = logWithLogrus
 
 	// setup fiber in separated func
@@ -82,13 +83,13 @@ func SetupApplication(ctx context.Context) (*App, error) {
 func setupFiber(app *fiber.App) *fiber.App {
 	app.Use(logger.New())
 	app.Use(cors.New(cors.Config{
-		AllowHeaders: "Authorization",
+		AllowHeaders: "Authorization,Content-Type",
 	}))
 	app.Use(requestid.New())
 	app.Use(limiter.New(limiter.Config{
 		Expiration: 3 * time.Minute,
 		LimitReached: func (ctx *fiber.Ctx) error {
-			return helper.ResponseFormatter[any](ctx,fiber.StatusTooManyRequests,nil,"Too many requests, wait till 3 min",nil)
+			return helper.ResponseFormatter[any](ctx,fiber.StatusTooManyRequests,nil,"Too many requests, wait till 3 min",nil,nil)
 		},
 	}))
 	app.Use(func(c *fiber.Ctx) error {

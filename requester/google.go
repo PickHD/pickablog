@@ -29,6 +29,7 @@ type (
 	}
 )
 
+// GetUserInfo retrieved user data from google services
 func (og *OAuthGoogle) GetUserInfo(code string) (model.GoogleOauthResponse,error) {
 	token,err := og.GConfig.Exchange(og.Context,code)
 	if err != nil {
