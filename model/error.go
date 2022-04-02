@@ -27,6 +27,10 @@ var (
 
 	// ErrUserNotFound occurs when user is not found in databases
 	ErrUserNotFound = errors.New("users is not found")
+
+	// ErrTagNotFound occurs when tag is not found in database
+	ErrTagNotFound = errors.New("tag is not found")
+
 	// ErrInvalidPassword occurs when password user inputed is invalid
 	ErrInvalidPassword = errors.New("invalid password")
 	// ErrMismatchLogin occurs when user trying mismatch login method

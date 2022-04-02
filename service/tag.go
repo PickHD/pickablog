@@ -15,6 +15,8 @@ type (
 	ITagService interface {
 		CreateTagSvc(req model.CreateTagRequest,createdBy string) error
 		GetAllTagSvc(page int,size int,order string,field string, search string) ([]model.ViewTagResponse,*model.Metadata,error)
+		UpdateTagSvc(id int, req model.UpdateTagRequest, updatedBy string) error
+		DeleteTagSvc(id int) error
 	}
 
 	// TagService is an app tag struct that consists of all the dependencies needed for tag service
@@ -57,6 +59,10 @@ func (tr *TagService) GetAllTagSvc(page int,size int,order string, field string,
 		return nil,nil,err
 	}
 
+	if totalData < 1 {
+		return []model.ViewTagResponse{},nil,nil
+	}
+
 	totalPage := (int(totalData) + size - 1) / size
 
 	if len(data) > size {
@@ -67,6 +73,45 @@ func (tr *TagService) GetAllTagSvc(page int,size int,order string, field string,
 
 	return data,meta,nil
 } 
+
+// UpdateTagSvc service layer for updating a tag by id
+func (tr *TagService) UpdateTagSvc(id int, req model.UpdateTagRequest, updatedBy string) error {
+	_,err := tr.TagRepo.GetByID(id)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return model.ErrTagNotFound
+		}
+	}
+
+	err = validateUpdateTagRequest(&req)
+	if err != nil {
+		return err
+	}
+
+	err = tr.TagRepo.UpdateByID(id,req,updatedBy)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+// DeleteTagSvc service layer for deleting a tag by id
+func (tr *TagService) DeleteTagSvc(id int) error {
+	_,err := tr.TagRepo.GetByID(id)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return model.ErrTagNotFound
+		}
+	}
+
+	err = tr.TagRepo.DeleteByID(id)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
 
 // validateCreateTagRequest responsible to validating request create tag
 func validateCreateTagRequest(req *model.CreateTagRequest) error {
@@ -86,4 +131,13 @@ func buildTagMetaData(page int,size int,order string,totalData int,totalPage int
 		TotalData: totalData,
 		TotalPage: totalPage,
 	}
+}
+
+// validateUpdateTagRequest reposible to validating request update tag
+func validateUpdateTagRequest(req *model.UpdateTagRequest) error {
+	if len(req.Name) < 5 {
+		return model.ErrInvalidRequest
+	}
+
+	return nil
 }

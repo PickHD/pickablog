@@ -43,6 +43,10 @@ func setupRouter(app *application.App) {
 			v1.Options("/tag",helper.OptionsHandler)
 			v1.Get("/tag",dep.TagController.GetAllTag)
 			v1.Options("/tag",helper.OptionsHandler)
+			v1.Put("/tag/:id",m.ValidateJWTMiddleware,m.SuperAdminOnlyMiddleware,dep.TagController.UpdateTag)
+			v1.Options("/tag/:id",helper.OptionsHandler)
+			v1.Delete("/tag/:id",m.ValidateJWTMiddleware,m.SuperAdminOnlyMiddleware,dep.TagController.DeleteTag)
+			v1.Options("/tag/:id",helper.OptionsHandler)
 		}
 	}
 	
