@@ -81,6 +81,8 @@ func (tr *TagService) UpdateTagSvc(id int, req model.UpdateTagRequest, updatedBy
 		if err == pgx.ErrNoRows {
 			return model.ErrTagNotFound
 		}
+
+		return err
 	}
 
 	err = validateUpdateTagRequest(&req)
@@ -103,6 +105,8 @@ func (tr *TagService) DeleteTagSvc(id int) error {
 		if err == pgx.ErrNoRows {
 			return model.ErrTagNotFound
 		}
+
+		return err
 	}
 
 	err = tr.TagRepo.DeleteByID(id)
