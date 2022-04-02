@@ -20,6 +20,8 @@ type (
 	ITagController interface {
 		CreateTag(ctx *fiber.Ctx) error
 		GetAllTag(ctx *fiber.Ctx) error
+		UpdateTag(ctx *fiber.Ctx) error
+		DeleteTag(ctx *fiber.Ctx) error
 	}
 	
 	// TagController is an app tag struct that consists of all the dependencies needed for tag controller
@@ -106,4 +108,66 @@ func (tc *TagController) GetAllTag(ctx *fiber.Ctx) error {
 	}
 
 	return helper.ResponseFormatter[any](ctx,fiber.StatusOK,nil,"Success Getting all Tags",data,meta)
+}
+
+// UpdateTag responsible to updating a tag of article by id from controller layer
+func (tc *TagController) UpdateTag(ctx *fiber.Ctx) error {
+	var tagReq model.UpdateTagRequest
+
+	data := ctx.Locals(model.KeyJWTValidAccess)
+	extData,err := util.ExtractPayloadJWT(data)
+	if err != nil {
+		return helper.ResponseFormatter[any](ctx,fiber.StatusInternalServerError,err,err.Error(),nil,nil)
+	}
+
+	if err := ctx.BodyParser(&tagReq); err != nil {
+		return helper.ResponseFormatter[any](ctx,fiber.StatusBadRequest,err,err.Error(),nil,nil)
+	}
+
+	id,err := ctx.ParamsInt("id",0)
+	if err != nil {
+		return helper.ResponseFormatter[any](ctx,fiber.StatusBadRequest,err,err.Error(),nil,nil)
+	}
+
+	if id == 0 {
+		return helper.ResponseFormatter[any](ctx,fiber.StatusBadRequest,nil,model.ErrTagNotFound.Error(),nil,nil)
+	}
+
+	err = tc.TagSvc.UpdateTagSvc(id,tagReq,extData.FullName)
+	if err != nil {
+		if errors.Is(err,model.ErrTagNotFound) {
+			return helper.ResponseFormatter[any](ctx,fiber.StatusNotFound,err,err.Error(),nil,nil)
+		}
+
+		if errors.Is(err,model.ErrInvalidRequest) {
+			return helper.ResponseFormatter[any](ctx,fiber.StatusBadRequest,err,err.Error(),nil,nil)
+		}
+
+		return helper.ResponseFormatter[any](ctx,fiber.StatusInternalServerError,err,err.Error(),nil,nil)
+	}
+
+	return helper.ResponseFormatter[any](ctx,fiber.StatusOK,nil,"Success Update Tags",nil,nil)
+}
+
+// DeleteTag responsible to deleting a tag of article by id from controller layer
+func (tc *TagController) DeleteTag(ctx *fiber.Ctx) error {
+	id,err := ctx.ParamsInt("id",0)
+	if err != nil {
+		return helper.ResponseFormatter[any](ctx,fiber.StatusBadRequest,err,err.Error(),nil,nil)
+	}
+
+	if id == 0 {
+		return helper.ResponseFormatter[any](ctx,fiber.StatusBadRequest,nil,model.ErrTagNotFound.Error(),nil,nil)
+	}
+
+	err = tc.TagSvc.DeleteTagSvc(id)
+	if err != nil {
+		if errors.Is(err,model.ErrTagNotFound) {
+			return helper.ResponseFormatter[any](ctx,fiber.StatusNotFound,err,err.Error(),nil,nil)
+		}
+
+		return helper.ResponseFormatter[any](ctx,fiber.StatusInternalServerError,err,err.Error(),nil,nil)
+	}
+
+	return helper.ResponseFormatter[any](ctx,fiber.StatusOK,nil,"Success Deleting Tags",nil,nil)
 }

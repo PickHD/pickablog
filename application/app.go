@@ -88,6 +88,7 @@ func setupFiber(app *fiber.App) *fiber.App {
 	app.Use(requestid.New())
 	app.Use(limiter.New(limiter.Config{
 		Expiration: 3 * time.Minute,
+		Max: 10,
 		LimitReached: func (ctx *fiber.Ctx) error {
 			return helper.ResponseFormatter[any](ctx,fiber.StatusTooManyRequests,nil,"Too many requests, wait till 3 min",nil,nil)
 		},

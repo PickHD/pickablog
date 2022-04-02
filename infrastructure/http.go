@@ -27,22 +27,21 @@ func setupRouter(app *application.App) {
 		})
 		
 		{
+			v1.Options("/*",helper.OptionsHandler)
+
 			v1.Get("/health",dep.HealthCheckController.HealthCheck)
-			v1.Options("/health",helper.OptionsHandler)
 
 			v1.Post("/auth/register",dep.AuthController.RegisterAuthor)
-			v1.Options("/auth/register",helper.OptionsHandler)
 			v1.Get("/auth/google/login",dep.AuthController.GoogleLogin)
-			v1.Options("/auth/google/login",helper.OptionsHandler)
 			v1.Get("/auth/google/callback",dep.AuthController.GoogleLoginCallback)
-			v1.Options("/auth/google/callback",helper.OptionsHandler)
 			v1.Post("/auth/login",dep.AuthController.Login)
-			v1.Options("/auth/login",helper.OptionsHandler)
+			
 
 			v1.Post("/tag",m.ValidateJWTMiddleware,m.SuperAdminOnlyMiddleware,dep.TagController.CreateTag)
-			v1.Options("/tag",helper.OptionsHandler)
 			v1.Get("/tag",dep.TagController.GetAllTag)
-			v1.Options("/tag",helper.OptionsHandler)
+			v1.Put("/tag/:id",m.ValidateJWTMiddleware,m.SuperAdminOnlyMiddleware,dep.TagController.UpdateTag)
+			v1.Delete("/tag/:id",m.ValidateJWTMiddleware,m.SuperAdminOnlyMiddleware,dep.TagController.DeleteTag)
+	
 		}
 	}
 	

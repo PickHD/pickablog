@@ -5,6 +5,7 @@ import (
 	"fmt"
 
 	"github.com/PickHD/pickablog/config"
+	"github.com/PickHD/pickablog/helper"
 	"github.com/PickHD/pickablog/model"
 	"github.com/jackc/pgx/v4"
 	"github.com/sirupsen/logrus"
@@ -16,6 +17,9 @@ type (
 		Create(req model.CreateTagRequest, createdBy string) error
 		GetByName(name string) (*model.ViewTagResponse,error)
 		GetAll(page int, size int, order string, field string, search string) ([]model.ViewTagResponse,int,error)
+		GetByID(id int) (*model.ViewTagResponse,error)
+		UpdateByID(id int,req model.UpdateTagRequest,updatedBy string) error
+		DeleteByID(id int) error
 	}
 
 	// TagRepository is an app health check struct that consists of all the dependencies needed for tag repository
@@ -49,13 +53,15 @@ func (tr *TagRepository) GetByName(name string) (*model.ViewTagResponse,error) {
 			id,
 			name,
 			created_at,
-			updated_at 
+			updated_at,
+			created_by,
+			updated_by
 		FROM tag
 		WHERE name = $1
 	`
 
 	row := tr.DB.QueryRow(tr.Context,q,name)
-	err := row.Scan(&tag.ID,&tag.Name,&tag.CreatedAt,&tag.UpdatedAt)
+	err := row.Scan(&tag.ID,&tag.Name,&tag.CreatedAt,&tag.UpdatedAt,&tag.CreatedBy,&tag.UpdatedBy)
 	if err != nil {
 		if err == pgx.ErrNoRows {
 			tr.Logger.Info(fmt.Errorf("TagRepository.GetByName Scan INFO %v MSG %s",err,err.Error()))
@@ -76,7 +82,9 @@ func (tr *TagRepository) GetAll(page int,size int,order string, field string,sea
 			id,
 			name,
 			created_at,
-			updated_at 
+			updated_at,
+			created_by,
+			updated_by
 		FROM tag
 	`
 	qCount := `SELECT 1 FROM tag`
@@ -119,7 +127,7 @@ func (tr *TagRepository) GetAll(page int,size int,order string, field string,sea
 	var listData []model.ViewTagResponse
 	for rows.Next() {
 		data := &model.ViewTagResponse{}
-		err := rows.Scan(&data.ID,&data.Name,&data.CreatedAt,&data.UpdatedAt)
+		err := rows.Scan(&data.ID,&data.Name,&data.CreatedAt,&data.UpdatedAt,&data.CreatedBy,&data.UpdatedBy)
 		if err != nil {
 			tr.Logger.Error(fmt.Errorf("TagRepository.GetAll rows.Next Scan ERROR %v MSG %s",err,err.Error()))
 			return nil,0,err
@@ -129,4 +137,72 @@ func (tr *TagRepository) GetAll(page int,size int,order string, field string,sea
 	}
 
 	return listData,totalData,nil
+}
+
+// GetByID repository layer for quering command getting tag by id
+func (tr *TagRepository) GetByID(id int) (*model.ViewTagResponse,error) {
+	var tag model.ViewTagResponse
+
+	q := ` 
+		SELECT 
+			id,
+			name,
+			created_at,
+			updated_at,
+			created_by,
+			updated_by
+		FROM tag
+		WHERE id = $1
+	`
+
+	row := tr.DB.QueryRow(tr.Context,q,id)
+	err := row.Scan(&tag.ID,&tag.Name,&tag.CreatedAt,&tag.UpdatedAt,&tag.CreatedBy,&tag.UpdatedBy)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			tr.Logger.Info(fmt.Errorf("TagRepository.GetByID Scan INFO %v MSG %s",err,err.Error()))
+		} else {
+			tr.Logger.Error(fmt.Errorf("TagRepository.GetByID Scan ERROR %v MSG %s",err,err.Error()))
+		}
+
+		return nil,err
+	}
+
+	return &tag,nil
+}
+
+// UpdateByID repository layer for executing command updating tag by id
+func (tr *TagRepository) UpdateByID(id int, req model.UpdateTagRequest,updatedBy string) error {
+	fields := make(map[string]interface{})
+	fields["name"] = req.Name
+	fields["updated_by"] = updatedBy
+	fields["id"] = id
+
+	q,args,err := helper.QueryUpdateBuilder("tag",fields,[]string{"id"})
+	if err != nil {
+		tr.Logger.Error(fmt.Errorf("TagRepository.UpdateByID QueryUpdateBuilder ERROR %v MSG %s",err,err.Error()))
+		return err
+	}
+
+	tr.Logger.Info(fmt.Sprintf("Query : %s Args : %v",q,args))
+
+	_,err = tr.DB.Exec(tr.Context,q,args...)
+	if err != nil {
+		tr.Logger.Error(fmt.Errorf("TagRepository.UpdateByID Exec ERROR %v MSG %s",err,err.Error()))
+		return err
+	}
+
+	return nil
+}
+
+// DeleteByID repository layer for executing command deleting tag by id
+func (tr *TagRepository) DeleteByID(id int) error {
+	q := `DELETE FROM tag WHERE id = $1`
+
+	_,err := tr.DB.Exec(tr.Context,q,id)
+	if err != nil {
+		tr.Logger.Error(fmt.Errorf("TagRepository.DeleteByID Exec ERROR %v MSG %s",err,err.Error()))
+		return err
+	}
+
+	return nil
 }

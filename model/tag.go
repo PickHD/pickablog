@@ -8,10 +8,18 @@ type (
 		Name string `json:"name"`
 	}
 
+	// UpdateTagRequest consist data of updating a tag
+	UpdateTagRequest struct {
+		Name string `json:"name"`
+	}
+
+	// ViewTagResponse consist data of tag
 	ViewTagResponse struct {
-		ID int `db:"id" json:"id"`
-		Name string `db:"name" json:"name"`
-		CreatedAt time.Time `db:"created_at" json:"created_at"`
-		UpdatedAt time.Time `db:"updated_at" json:"updated_at"`
+		ID int `db:"id" json:"id,omitempty"`
+		Name string `db:"name" json:"name,omitempty"`
+		CreatedAt time.Time `db:"created_at" json:"created_at,omitempty"`
+		UpdatedAt time.Time `db:"updated_at" json:"updated_at,omitempty"`
+		CreatedBy string `db:"created_by" json:"created_by,omitempty"`
+		UpdatedBy *string `db:"updated_by" json:"updated_by,omitempty"`
 	}
 )
