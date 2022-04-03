@@ -12,6 +12,7 @@ type Dependency struct {
 	HealthCheckController controller.IHealthCheckController
 	AuthController controller.IAuthController
 	TagController controller.ITagController
+	UserController controller.IUserController
 }
 
 // SetupDependencyInjection is a function to set up dependencies 
@@ -20,6 +21,7 @@ func SetupDependencyInjection(app *App) *Dependency {
 		HealthCheckController: setupHealthCheckDependency(app),
 		AuthController: setupAuthDependency(app),
 		TagController: setupTagDependency(app),
+		UserController: setupUserDependency(app),
 	}
 }
 
@@ -112,4 +114,30 @@ func setupTagDependency(app *App) *controller.TagController {
 	}
 
 	return tagCtrl
+}
+
+// setupUserDependency is a function to set up dependencies to be used inside user controller layer
+func setupUserDependency(app *App) *controller.UserController {
+	userRepo := &repository.UserRepository{
+		Context: app.Context,
+		Config: app.Config,
+		Logger: app.Logger,
+		DB: app.DB,
+	}
+
+	userSvc := &service.UserService{
+		Context: app.Context,
+		Config: app.Config,
+		Logger: app.Logger,
+		UserRepo: userRepo,
+	}
+
+	userCtrl := &controller.UserController{
+		Context: app.Context,
+		Config: app.Config,
+		Logger: app.Logger,
+		UserSvc: userSvc,
+	}
+
+	return userCtrl
 }

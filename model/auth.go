@@ -16,6 +16,7 @@ var (
 type (
 	// AuthDetails consist data authorized users
 	AuthUserDetails struct {
+		UserID int `db:"user_id" json:"-"`
 		FullName string `db:"full_name" json:"full_name"`
 		Email string `db:"email" json:"email"`
 		RoleID int `db:"id" json:"role_id"`

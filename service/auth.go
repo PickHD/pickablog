@@ -66,6 +66,7 @@ func (as *AuthService) Create(user model.CreateUserRequest) error {
 
 	return model.ErrEmailExisted 
 }
+
 // GoogleLoginSvc service layer for handling googles login services
 func (as *AuthService) GoogleLoginSvc() (string,error) {
 	state := helper.GenerateRandomToken(8)

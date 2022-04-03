@@ -46,4 +46,7 @@ var (
 
 	// ErrForbidenAccess occurs when user trying to access forbidden resource
 	ErrForbiddenAccess = errors.New("forbidden access")
+
+	// ErrForbiddenDeleteSelf occurs when user trying deleting their account by self
+	ErrForbiddenDeleteSelf = errors.New("forbidden delete account self, make sure the id is corrent")
 )
