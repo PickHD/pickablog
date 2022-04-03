@@ -4,6 +4,7 @@ import (
 	"context"
 
 	"github.com/PickHD/pickablog/config"
+	"github.com/PickHD/pickablog/helper"
 	"github.com/PickHD/pickablog/model"
 	"github.com/PickHD/pickablog/repository"
 	"github.com/jackc/pgx/v4"
@@ -29,16 +30,16 @@ type (
 )
 
 // CreateTagSvc service layer for creating a tag
-func (tr *TagService) CreateTagSvc(req model.CreateTagRequest,createdBy string) error {
+func (ts *TagService) CreateTagSvc(req model.CreateTagRequest,createdBy string) error {
 	err := validateCreateTagRequest(&req)
 	if err != nil {
 		return err
 	}
 
-	_,err = tr.TagRepo.GetByName(req.Name)
+	_,err = ts.TagRepo.GetByName(req.Name)
 	if err != nil {
 		if err == pgx.ErrNoRows {
-			err = tr.TagRepo.Create(req,createdBy)
+			err = ts.TagRepo.Create(req,createdBy)
 			if err != nil {
 				return err
 			}
@@ -53,8 +54,8 @@ func (tr *TagService) CreateTagSvc(req model.CreateTagRequest,createdBy string) 
 }
 
 // GetAllTagSvc service layer for getting all tag
-func (tr *TagService) GetAllTagSvc(page int,size int,order string, field string, search string) ([]model.ViewTagResponse,*model.Metadata,error) {
-	data,totalData, err := tr.TagRepo.GetAll(page,size,order,field,search)
+func (ts *TagService) GetAllTagSvc(page int,size int,order string, field string, search string) ([]model.ViewTagResponse,*model.Metadata,error) {
+	data,totalData, err := ts.TagRepo.GetAll(page,size,order,field,search)
 	if err != nil {
 		return nil,nil,err
 	}
@@ -69,14 +70,14 @@ func (tr *TagService) GetAllTagSvc(page int,size int,order string, field string,
 		data = data[:len(data)-1]
 	}
 
-	meta := buildTagMetaData(page,size,order,totalData,totalPage)
+	meta := helper.BuildMetaData(page,size,order,totalData,totalPage)
 
 	return data,meta,nil
 } 
 
 // UpdateTagSvc service layer for updating a tag by id
-func (tr *TagService) UpdateTagSvc(id int, req model.UpdateTagRequest, updatedBy string) error {
-	_,err := tr.TagRepo.GetByID(id)
+func (ts *TagService) UpdateTagSvc(id int, req model.UpdateTagRequest, updatedBy string) error {
+	tag,err := ts.TagRepo.GetByID(id)
 	if err != nil {
 		if err == pgx.ErrNoRows {
 			return model.ErrTagNotFound
@@ -85,12 +86,12 @@ func (tr *TagService) UpdateTagSvc(id int, req model.UpdateTagRequest, updatedBy
 		return err
 	}
 
-	err = validateUpdateTagRequest(&req)
+	tagMap,err := validateUpdateTagRequest(tag,&req)
 	if err != nil {
 		return err
 	}
 
-	err = tr.TagRepo.UpdateByID(id,req,updatedBy)
+	err = ts.TagRepo.UpdateByID(id,tagMap,updatedBy)
 	if err != nil {
 		return err
 	}
@@ -99,8 +100,8 @@ func (tr *TagService) UpdateTagSvc(id int, req model.UpdateTagRequest, updatedBy
 }
 
 // DeleteTagSvc service layer for deleting a tag by id
-func (tr *TagService) DeleteTagSvc(id int) error {
-	_,err := tr.TagRepo.GetByID(id)
+func (ts *TagService) DeleteTagSvc(id int) error {
+	_,err := ts.TagRepo.GetByID(id)
 	if err != nil {
 		if err == pgx.ErrNoRows {
 			return model.ErrTagNotFound
@@ -109,7 +110,7 @@ func (tr *TagService) DeleteTagSvc(id int) error {
 		return err
 	}
 
-	err = tr.TagRepo.DeleteByID(id)
+	err = ts.TagRepo.DeleteByID(id)
 	if err != nil {
 		return err
 	}
@@ -126,22 +127,17 @@ func validateCreateTagRequest(req *model.CreateTagRequest) error {
 	return nil
 }
 
-// buildTagMetaData responsible to building response meta get all tag
-func buildTagMetaData(page int,size int,order string,totalData int,totalPage int) *model.Metadata {
-	return &model.Metadata{
-		Page: page,
-		Size: size,
-		Order: order,
-		TotalData: totalData,
-		TotalPage: totalPage,
-	}
-}
-
 // validateUpdateTagRequest reposible to validating request update tag
-func validateUpdateTagRequest(req *model.UpdateTagRequest) error {
-	if len(req.Name) < 5 {
-		return model.ErrInvalidRequest
+func validateUpdateTagRequest(tag *model.ViewTagResponse,req *model.UpdateTagRequest) (map[string]interface{},error) {
+	tagMap:= make(map[string]interface{})
+
+	if req.Name != "" {
+		if len(req.Name) < 5 {
+			return nil,model.ErrInvalidRequest
+		}
+		
+		tagMap["name"] = req.Name
 	}
 
-	return nil
+	return tagMap,nil
 }

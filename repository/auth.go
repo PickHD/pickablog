@@ -49,6 +49,7 @@ func (ar *AuthRepository) GetUserByEmail(email string) (*model.AuthUserDetails,e
 	var authUserDetail model.AuthUserDetails
 
 	q := `SELECT 
+		u.id AS user_id,
 		u.full_name,
 		u.email,
 		u.password,
@@ -59,7 +60,7 @@ func (ar *AuthRepository) GetUserByEmail(email string) (*model.AuthUserDetails,e
 	`
 
 	row := ar.DB.QueryRow(ar.Context,q,email)
-	err := row.Scan(&authUserDetail.FullName,&authUserDetail.Email,&authUserDetail.Password,&authUserDetail.RoleID,&authUserDetail.RoleName)
+	err := row.Scan(&authUserDetail.UserID,&authUserDetail.FullName,&authUserDetail.Email,&authUserDetail.Password,&authUserDetail.RoleID,&authUserDetail.RoleName)
 	if err != nil {
 		if err == pgx.ErrNoRows {
 			ar.Logger.Info(fmt.Errorf("AuthRepository.GetUserByEmail INFO : %v MSG : %s",err,err.Error()))

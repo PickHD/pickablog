@@ -34,7 +34,7 @@ type (
 
 )
 
-// CreateTag responsible to creating a tag of article from controller layer/
+// CreateTag responsible to creating a tag of article from controller layer
 func (tc *TagController) CreateTag(ctx *fiber.Ctx) error {
 	var tagReq model.CreateTagRequest
 
@@ -96,9 +96,9 @@ func (tc *TagController) GetAllTag(ctx *fiber.Ctx) error {
 		}
 	}
 
-	if s := ctx.Query("s",""); s != "" {
-		if len(s) > 0 {
-			search = strings.Trim(s," ")
+	if sr:= ctx.Query("s",""); sr != "" {
+		if len(sr) > 0 {
+			search = strings.Trim(sr," ")
 		}
 	}
 
