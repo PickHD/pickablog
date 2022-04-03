@@ -18,7 +18,7 @@ type (
 		GetByName(name string) (*model.ViewTagResponse,error)
 		GetAll(page int, size int, order string, field string, search string) ([]model.ViewTagResponse,int,error)
 		GetByID(id int) (*model.ViewTagResponse,error)
-		UpdateByID(id int,req model.UpdateTagRequest,updatedBy string) error
+		UpdateByID(id int,req map[string]interface{},updatedBy string) error
 		DeleteByID(id int) error
 	}
 
@@ -171,13 +171,11 @@ func (tr *TagRepository) GetByID(id int) (*model.ViewTagResponse,error) {
 }
 
 // UpdateByID repository layer for executing command updating tag by id
-func (tr *TagRepository) UpdateByID(id int, req model.UpdateTagRequest,updatedBy string) error {
-	fields := make(map[string]interface{})
-	fields["name"] = req.Name
-	fields["updated_by"] = updatedBy
-	fields["id"] = id
+func (tr *TagRepository) UpdateByID(id int, req map[string]interface{},updatedBy string) error {
+	req["updated_by"] = updatedBy
+	req["id"] = id
 
-	q,args,err := helper.QueryUpdateBuilder("tag",fields,[]string{"id"})
+	q,args,err := helper.QueryUpdateBuilder("tag",req,[]string{"id"})
 	if err != nil {
 		tr.Logger.Error(fmt.Errorf("TagRepository.UpdateByID QueryUpdateBuilder ERROR %v MSG %s",err,err.Error()))
 		return err

@@ -13,7 +13,9 @@ import (
 )
 
 type (
+	// DecodePayloadData consists decoded payload data
 	DecodePayloadData struct {
+		UserID int `json:"user_id"`
 		FullName string `json:"full_name"`
 		Email string `json:"email"`
 		RoleName string `json:"role_name"`
@@ -21,6 +23,7 @@ type (
 )
 
 const (
+	payloadUserID string = "user_id"
 	payloadFullName string = "full_name"
 	payloadEmail string = "email"
 	payloadRoleName string = "role_name"
@@ -32,6 +35,7 @@ const (
 // BuildJWT return signed claims token JWT with defined expiration times in configuration 
 func BuildJWT(cfg *config.Configuration, user *model.AuthUserDetails) (string,error) {
 	claims := jwt.MapClaims{}
+	claims[payloadUserID] = user.UserID
 	claims[payloadFullName] = user.FullName
 	claims[payloadEmail] = user.Email
 	claims[payloadRoleName] = user.RoleName
@@ -98,6 +102,12 @@ func ExtractPayloadJWT(data interface{}) (DecodePayloadData, error) {
 // insertPayloadJWT will inserting data from decoded payload into defined struct
 func insertPayloadJWT(claims jwt.MapClaims) (DecodePayloadData,error) {
 	decodePayloadData := DecodePayloadData{}
+
+	if userID, ok := claims[payloadUserID].(float64); ok {
+		decodePayloadData.UserID = int(userID)
+	} else {
+		return DecodePayloadData{}, model.ErrTypeAssertion
+	}
 
 	if userEmail, ok := claims[payloadEmail].(string); ok {
 		decodePayloadData.Email = userEmail
