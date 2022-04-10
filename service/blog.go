@@ -9,14 +9,15 @@ import (
 	"github.com/PickHD/pickablog/repository"
 	"github.com/jackc/pgx/v4"
 	"github.com/sirupsen/logrus"
+	"github.com/gosimple/slug"
 )
 
 type (
 	// IBlogService is an interface that has all the function to be implemented inside blog service
 	IBlogService interface {
 		CreateBlogSvc(req model.CreateBlogRequest, createdBy string) error
-		GetAllBlogSvc(page int, size int, order string, field string, search string, filter model.FilterBlogRequest) ([]model.ViewBlogResponse,*model.Metadata,error)
-		GetBlogBySlugSvc(slug string) (*model.ViewBlogResponse,error)
+		GetAllBlogSvc(page int, size int, order string, field string, search string, filter model.FilterBlogRequest) ([]model.BlogResponse,*model.Metadata,error)
+		GetBlogBySlugSvc(slug string) (*model.BlogResponse,error)
 		UpdateBlogSvc(id int, req model.UpdateBlogRequest, updatedBy string) error
 		DeleteBlogSvc(id int) error
 	}
@@ -37,7 +38,7 @@ func (bs *BlogService) CreateBlogSvc(req model.CreateBlogRequest, createdBy stri
 		return err
 	}
 
-	req.Slug = helper.GenerateSlug(req.Title)
+	req.Slug = slug.Make(req.Title)
 
 	err = bs.BlogRepo.Create(req,createdBy)
 	if err != nil {
@@ -48,30 +49,77 @@ func (bs *BlogService) CreateBlogSvc(req model.CreateBlogRequest, createdBy stri
 }
 
 // GetAllBlogSvc service layer for handling list/filter/search a blog
-func (bs *BlogService) GetAllBlogSvc(page int, size int, order string, field string, search string,filter model.FilterBlogRequest) ([]model.ViewBlogResponse,*model.Metadata,error) {
-	data,totalData,err := bs.BlogRepo.GetAll(page,size,order,field,search,filter)
+func (bs *BlogService) GetAllBlogSvc(page int, size int, order string, field string, search string,filter model.FilterBlogRequest) ([]model.BlogResponse,*model.Metadata,error) {
+	res,totalData,err := bs.BlogRepo.GetAll(page,size,order,field,search,filter)
 	if err != nil {
 		return nil,nil,err
 	}
 
 	if totalData < 1 {
-		return []model.ViewBlogResponse{},nil,nil
+		return []model.BlogResponse{},nil,nil
 	}
 
 	totalPage := (int(totalData) + size - 1) / size
 
-	if len(data) > size {
-		data = data[:len(data)-1]
+	if len(res) > size {
+		res = res[:len(res)-1]
 	}
 
 	meta := helper.BuildMetaData(page,size,order,totalData,totalPage)
+
+	var data []model.BlogResponse
+
+	for i := range res {
+		r := res[i]
+		d := model.BlogResponse{}
+
+		d.ID= r.ID
+		d.Title = r.Title
+		d.Body = r.Body
+		d.Footer = r.Footer
+		d.UserID = r.UserID
+		d.CreatedAt = r.CreatedAt
+		d.CreatedBy = r.CreatedBy
+		d.UpdatedAt = r.UpdatedAt
+		d.UpdatedBy = r.UpdatedBy
+
+		if len(r.Comments) > 1 {
+			for c := range r.Comments{
+				rc := r.Comments[c]
+				if rc.Valid {
+					d.Comments = append(d.Comments, int(rc.Int32))
+				}
+			}
+		}
+		
+
+		if len(r.Tags) > 1 {
+			for t := range r.Tags{
+				rt := r.Tags[t]
+				if rt.Valid {
+					d.Tags = append(d.Tags, int(rt.Int32))
+				}
+			}
+		}
+
+		if len(r.Likes) > 1 {
+			for l := range r.Likes{
+				rl := r.Likes[l]
+				if rl.Valid {
+					d.Likes = append(d.Likes, int(rl.Int32))
+				}
+			}
+		}
+
+		data = append(data, d)
+	}
 
 	return data,meta,nil
 }
 
 // GetBlogBySlugSvc service layer for handling getting detail a blog by slugs
-func (bs *BlogService) GetBlogBySlugSvc(slug string) (*model.ViewBlogResponse,error) {
-	data,err := bs.BlogRepo.GetBySlug(slug)
+func (bs *BlogService) GetBlogBySlugSvc(slug string) (*model.BlogResponse,error) {
+	res,err := bs.BlogRepo.GetBySlug(slug)
 	if err != nil {
 		if err == pgx.ErrNoRows {
 			return nil,model.ErrBlogNotFound
@@ -80,7 +128,48 @@ func (bs *BlogService) GetBlogBySlugSvc(slug string) (*model.ViewBlogResponse,er
 		return nil,err
 	}
 
-	return data,nil
+	r := res
+	data := model.BlogResponse{}
+
+	data.ID= r.ID
+	data.Title = r.Title
+	data.Body = r.Body
+	data.Footer = r.Footer
+	data.UserID = r.UserID
+	data.CreatedAt = r.CreatedAt
+	data.CreatedBy = r.CreatedBy
+	data.UpdatedAt = r.UpdatedAt
+	data.UpdatedBy = r.UpdatedBy
+
+	if len(r.Comments) > 1 {
+		for c := range r.Comments{
+			rc := r.Comments[c]
+			if rc.Valid {
+				data.Comments = append(data.Comments, int(rc.Int32))
+			}
+		}
+	}
+	
+
+	if len(r.Tags) > 1 {
+		for t := range r.Tags{
+			rt := r.Tags[t]
+			if rt.Valid {
+				data.Tags = append(data.Tags, int(rt.Int32))
+			}
+		}
+	}
+
+	if len(r.Likes) > 1 {
+		for l := range r.Likes{
+			rl := r.Likes[l]
+			if rl.Valid {
+				data.Likes = append(data.Likes, int(rl.Int32))
+			}
+		}
+	}
+
+	return &data,nil
 }
 
 // UpdateBlogSvc service layer for handling updating a blog by ID
@@ -163,7 +252,7 @@ func validateUpdateBlogRequest(req *model.UpdateBlogRequest) (map[string]interfa
 		return nil,model.ErrInvalidRequest
 	}
 
-	req.Slug = helper.GenerateSlug(req.Title)
+	req.Slug = slug.Make(req.Title)
 
 	blogMap["title"] = req.Title
 	blogMap["slug"] = req.Slug

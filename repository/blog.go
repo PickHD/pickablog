@@ -71,26 +71,26 @@ func (br *BlogRepository) GetAll(page int, size int, order string, field string,
 	criteria = ""
 
 	if len(filter.StartDate) > 0 && len(filter.EndDate) > 0 {
-		_,err := time.Parse(helper.StandardLayout,filter.StartDate)
+		pStartDate,err := time.Parse(helper.StandardLayout,filter.StartDate)
 		if err != nil {
 			br.Logger.Error(fmt.Errorf("BlogRepository.GetAll time.Parse ERROR %v MSG %s",err,err.Error()))
 
 			return nil,0,err
 		}
 
-		_,err = time.Parse(helper.StandardLayout,filter.EndDate)
+		pEndDate,err := time.Parse(helper.StandardLayout,filter.EndDate)
 		if err != nil {
 			br.Logger.Error(fmt.Errorf("BlogRepository.GetAll time.Parse ERROR %v MSG %s",err,err.Error()))
 
 			return nil,0,err
 		}
 
-		criteria += fmt.Sprintf(" created_at::DATE > %s AND created_at::DATE < %s",filter.StartDate,filter.EndDate)
+		criteria += fmt.Sprintf(" created_at::DATE >= '%s' AND created_at::DATE <= '%s'",pStartDate.Format(helper.StandardLayout),pEndDate.Format(helper.StandardLayout))
 	}
 
 	tags := ""
 	if len(filter.Tags) > 0 {
-		tags = `tags IN (`
+		tags = `tags @> '{`
 		for i , t:= range filter.Tags {
 			tags += fmt.Sprintf("%d",t)
 
@@ -99,7 +99,7 @@ func (br *BlogRepository) GetAll(page int, size int, order string, field string,
 			}
 		}
 
-		tags += ")"
+		tags += "}'"
 
 		if len(tags) > 0 {
 			if len(criteria) > 0 {
