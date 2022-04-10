@@ -40,17 +40,26 @@ func setupRouter(app *application.App) {
 		// TAG SECTION
 		{	
 			v1.Post("/tag",m.ValidateJWTMiddleware,m.SuperAdminOnlyMiddleware,dep.TagController.CreateTag)
-			v1.Get("/tag",dep.TagController.GetAllTag)
+			v1.Get("/tag",dep.TagController.ListTag)
 			v1.Put("/tag/:id",m.ValidateJWTMiddleware,m.SuperAdminOnlyMiddleware,dep.TagController.UpdateTag)
 			v1.Delete("/tag/:id",m.ValidateJWTMiddleware,m.SuperAdminOnlyMiddleware,dep.TagController.DeleteTag)
 		}
 
 		// USER SECTION
 		{
-			v1.Get("/users",m.ValidateJWTMiddleware,m.SuperAdminOnlyMiddleware,dep.UserController.GetAllUser)
-			v1.Get("/users/:id",m.ValidateJWTMiddleware,m.SuperAdminOnlyMiddleware,dep.UserController.GetUser)
+			v1.Get("/users",m.ValidateJWTMiddleware,m.SuperAdminOnlyMiddleware,dep.UserController.ListUser)
+			v1.Get("/users/:id",m.ValidateJWTMiddleware,m.SuperAdminOnlyMiddleware,dep.UserController.DetailUser)
 			v1.Put("/users/:id",m.ValidateJWTMiddleware,m.SuperAdminOnlyMiddleware,dep.UserController.UpdateUser)
 			v1.Delete("/users/:id",m.ValidateJWTMiddleware,m.SuperAdminOnlyMiddleware,dep.UserController.DeleteUser)
+		}
+
+		// BLOG SECTION
+		{
+			v1.Post("/blog",m.ValidateJWTMiddleware,m.AuthorOnlyMiddleware,dep.BlogController.CreateBlog)
+			v1.Get("/blog",dep.BlogController.ListBlog)
+			v1.Get("/blog/:slug",dep.BlogController.DetailBlog)
+			v1.Put("/blog/:id",m.ValidateJWTMiddleware,m.AuthorOnlyMiddleware,dep.BlogController.UpdateBlog)
+			v1.Delete("/blog/:id",m.ValidateJWTMiddleware,m.AuthorOnlyMiddleware,dep.BlogController.DeleteBlog)
 		}
 	}
 	

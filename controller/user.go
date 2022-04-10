@@ -18,8 +18,8 @@ import (
 type (
 	// IUserController is an interface that has all the function to be implemented inside user controller
 	IUserController interface {
-		GetAllUser(ctx *fiber.Ctx) error
-		GetUser(ctx *fiber.Ctx) error
+		ListUser(ctx *fiber.Ctx) error
+		DetailUser(ctx *fiber.Ctx) error
 		UpdateUser(ctx *fiber.Ctx) error
 		DeleteUser(ctx *fiber.Ctx) error
 	}
@@ -33,8 +33,8 @@ type (
 	}
 )
 
-// GetAllUser responsible to getting all user from controller layer
-func (uc *UserController) GetAllUser(ctx *fiber.Ctx) error {
+// ListUser responsible to getting all user from controller layer
+func (uc *UserController) ListUser(ctx *fiber.Ctx) error {
 	var (
 		page = 1
 		size = 10
@@ -83,8 +83,8 @@ func (uc *UserController) GetAllUser(ctx *fiber.Ctx) error {
 	return helper.ResponseFormatter[any](ctx,fiber.StatusOK,nil,"Success Getting all Users",data,meta)
 }
 
-// GetUser responsible to get a user by id from controller layer
-func (uc *UserController) GetUser(ctx *fiber.Ctx) error {
+// DetailUser responsible to get a user by id from controller layer
+func (uc *UserController) DetailUser(ctx *fiber.Ctx) error {
 	id,err := ctx.ParamsInt("id",0)
 	if err != nil {
 		return helper.ResponseFormatter[any](ctx,fiber.StatusBadRequest,err,err.Error(),nil,nil)
