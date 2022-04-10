@@ -19,7 +19,7 @@ type (
 	// ITagController is an interface that has all the function to be implemented inside tag controller
 	ITagController interface {
 		CreateTag(ctx *fiber.Ctx) error
-		GetAllTag(ctx *fiber.Ctx) error
+		ListTag(ctx *fiber.Ctx) error
 		UpdateTag(ctx *fiber.Ctx) error
 		DeleteTag(ctx *fiber.Ctx) error
 	}
@@ -34,7 +34,7 @@ type (
 
 )
 
-// CreateTag responsible to creating a tag of article from controller layer
+// CreateTag responsible to creating a tag of blog from controller layer
 func (tc *TagController) CreateTag(ctx *fiber.Ctx) error {
 	var tagReq model.CreateTagRequest
 
@@ -60,8 +60,8 @@ func (tc *TagController) CreateTag(ctx *fiber.Ctx) error {
 	return helper.ResponseFormatter[any](ctx,fiber.StatusCreated,nil,"Success Create Tag",nil,nil)
 }
 
-// GetAllTag responsible to getting all tag of article from controller layer
-func (tc *TagController) GetAllTag(ctx *fiber.Ctx) error {
+// ListTag responsible to getting all tag of blog from controller layer
+func (tc *TagController) ListTag(ctx *fiber.Ctx) error {
 	var (
 		page = 1
 		size = 10
@@ -110,7 +110,7 @@ func (tc *TagController) GetAllTag(ctx *fiber.Ctx) error {
 	return helper.ResponseFormatter[any](ctx,fiber.StatusOK,nil,"Success Getting all Tags",data,meta)
 }
 
-// UpdateTag responsible to updating a tag of article by id from controller layer
+// UpdateTag responsible to updating a tag of blog by id from controller layer
 func (tc *TagController) UpdateTag(ctx *fiber.Ctx) error {
 	var tagReq model.UpdateTagRequest
 
@@ -149,7 +149,7 @@ func (tc *TagController) UpdateTag(ctx *fiber.Ctx) error {
 	return helper.ResponseFormatter[any](ctx,fiber.StatusOK,nil,"Success Update Tags",nil,nil)
 }
 
-// DeleteTag responsible to deleting a tag of article by id from controller layer
+// DeleteTag responsible to deleting a tag of blog by id from controller layer
 func (tc *TagController) DeleteTag(ctx *fiber.Ctx) error {
 	id,err := ctx.ParamsInt("id",0)
 	if err != nil {

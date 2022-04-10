@@ -13,6 +13,7 @@ type Dependency struct {
 	AuthController controller.IAuthController
 	TagController controller.ITagController
 	UserController controller.IUserController
+	BlogController controller.IBlogController
 }
 
 // SetupDependencyInjection is a function to set up dependencies 
@@ -22,6 +23,7 @@ func SetupDependencyInjection(app *App) *Dependency {
 		AuthController: setupAuthDependency(app),
 		TagController: setupTagDependency(app),
 		UserController: setupUserDependency(app),
+		BlogController: setupBlogDependency(app),
 	}
 }
 
@@ -140,4 +142,30 @@ func setupUserDependency(app *App) *controller.UserController {
 	}
 
 	return userCtrl
+}
+
+// setupBlogDependency is a function to set up dependencies to be used inside blog controller layer
+func setupBlogDependency(app *App) *controller.BlogController {
+	blogRepo := &repository.BlogRepository{
+		Context: app.Context,
+		Config: app.Config,
+		Logger: app.Logger,
+		DB: app.DB,
+	}
+
+	blogSvc := &service.BlogService{
+		Context: app.Context,
+		Config: app.Config,
+		Logger: app.Logger,
+		BlogRepo: blogRepo,
+	}
+
+	blogCtrl := &controller.BlogController{
+		Context: app.Context,
+		Config: app.Config,
+		Logger: app.Logger,
+		BlogSvc: blogSvc,
+	}
+
+	return blogCtrl
 }
