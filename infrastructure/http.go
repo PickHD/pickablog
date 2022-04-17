@@ -69,7 +69,7 @@ func setupRouter(app *application.App) {
 
 			// BLOG LIKE SECTION
 			v1.Post("/blog/:id/like",m.ValidateJWTMiddleware,dep.BlogController.Like)
-			v1.Delete("/blog/:id/unlike",m.ValidateJWTMiddleware,dep.BlogController.DeleteComment)
+			v1.Delete("/blog/:id/unlike",m.ValidateJWTMiddleware,dep.BlogController.UnLike)
 		}
 	}
 	
