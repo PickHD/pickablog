@@ -20,6 +20,14 @@ type (
 		GetBlogBySlugSvc(slug string) (*model.BlogResponse,error)
 		UpdateBlogSvc(id int, req model.UpdateBlogRequest, updatedBy string) error
 		DeleteBlogSvc(id int) error
+
+		CreateCommentSvc(blogID int,req model.CommentRequest,createdBy string) error
+		UpdateCommentSvc(id int, req model.CommentRequest, updatedBy string) error
+		GetCommentsByBlogSvc(blogID int,page int, size int, order string, field string) ([]model.ViewCommentResponse,*model.Metadata,error)
+		DeleteCommentSvc(blogID int, commentID int) error
+
+		CreateLikeSvc(blogID int,req model.LikeRequest,createdBy string) error
+		DeleteLikeSvc(blogID int,likeID int) error
 	}
 
 	// BlogRepository is an app blog struct that consists of all the dependencies needed for blog service
@@ -28,6 +36,8 @@ type (
 		Config *config.Configuration
 		Logger *logrus.Logger
 		BlogRepo repository.IBlogRepository
+		CommentRepo repository.ICommentRepository
+		LikeRepo repository.ILikeRepository
 	}
 )
 
@@ -75,6 +85,7 @@ func (bs *BlogService) GetAllBlogSvc(page int, size int, order string, field str
 
 		d.ID= r.ID
 		d.Title = r.Title
+		d.Slug = r.Slug
 		d.Body = r.Body
 		d.Footer = r.Footer
 		d.UserID = r.UserID
@@ -133,6 +144,7 @@ func (bs *BlogService) GetBlogBySlugSvc(slug string) (*model.BlogResponse,error)
 
 	data.ID= r.ID
 	data.Title = r.Title
+	data.Slug = r.Slug
 	data.Body = r.Body
 	data.Footer = r.Footer
 	data.UserID = r.UserID
@@ -210,6 +222,24 @@ func (bs *BlogService) DeleteBlogSvc(id int) error {
 
 	return nil
 }
+
+// CreateCommentSvc service layer for handling creating comments
+func (bs *BlogService) CreateCommentSvc(blogID int, req model.CommentRequest,createdBy string) error {return nil}
+
+// UpdateCommentSvc service layer for handling updating comment by id
+func (bs *BlogService) UpdateCommentSvc(id int, req model.CommentRequest,updatedBy string) error {return nil}
+
+// GetCommentsByBlogSvc service layer for handling getting comments with filter
+func (bs *BlogService) GetCommentsByBlogSvc(blogID int, page int, size int, order string, field string) ([]model.ViewCommentResponse,*model.Metadata,error) {return nil,nil,nil}
+
+// DeleteCommentSvc service layer for handling deleting comment with id
+func (bs *BlogService) DeleteCommentSvc(blogID int, commentID int) error {return nil}
+
+// CreateLikeSvc service layer for handling creating likes
+func (bs *BlogService) CreateLikeSvc(blogID int, req model.LikeRequest,createdBy string) error {return nil}
+
+// DeleteLikeSvc service layer for handling deleting like with id
+func (bs *BlogService) DeleteLikeSvc(blogID int,likeID int) error {return nil}
 
 // validateCreateBlogRequest responsible to validating create blog request
 func validateCreateBlogRequest(req *model.CreateBlogRequest) error {

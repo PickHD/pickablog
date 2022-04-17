@@ -153,11 +153,27 @@ func setupBlogDependency(app *App) *controller.BlogController {
 		DB: app.DB,
 	}
 
+	commentRepo := &repository.CommentRepository{
+		Context: app.Context,
+		Config: app.Config,
+		Logger: app.Logger,
+		DB: app.DB,
+	}
+
+	likeRepo := &repository.LikeRepository{
+		Context: app.Context,
+		Config: app.Config,
+		Logger: app.Logger,
+		DB: app.DB,
+	}
+
 	blogSvc := &service.BlogService{
 		Context: app.Context,
 		Config: app.Config,
 		Logger: app.Logger,
 		BlogRepo: blogRepo,
+		CommentRepo: commentRepo,
+		LikeRepo: likeRepo,
 	}
 
 	blogCtrl := &controller.BlogController{

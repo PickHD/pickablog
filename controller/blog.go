@@ -23,6 +23,14 @@ type (
 		DetailBlog(ctx *fiber.Ctx) error
 		UpdateBlog(ctx *fiber.Ctx) error
 		DeleteBlog(ctx *fiber.Ctx) error
+
+		CreateComment(ctx *fiber.Ctx) error
+		UpdateComment(ctx *fiber.Ctx) error
+		ListComment(ctx *fiber.Ctx) error
+		DeleteComment(ctx *fiber.Ctx) error
+
+		Like(ctx *fiber.Ctx) error
+		UnLike(ctx *fiber.Ctx) error
 	}
 
 	// BlogController is an app blog struct that consists of all the dependencies needed for blog controller
@@ -199,3 +207,21 @@ func (bc *BlogController) DeleteBlog(ctx *fiber.Ctx) error {
 
 	return helper.ResponseFormatter[any](ctx,fiber.StatusOK,nil,"Success Delete Blog",nil,nil)
 }
+
+// CreateComment responsible to creating a comment from controller layer
+func (bc *BlogController) CreateComment(ctx *fiber.Ctx) error {return nil}
+
+// UpdateComment responsible to updating a comment by id from controller layer
+func (bc *BlogController) UpdateComment(ctx *fiber.Ctx) error {return nil}
+
+// ListComment responsible to getting comments by blog id from controller layer
+func (bc *BlogController) ListComment(ctx *fiber.Ctx) error {return nil}
+
+// DeleteComment responsible to deleting a comment by id from controller layer
+func (bc *BlogController) DeleteComment(ctx *fiber.Ctx) error {return nil}
+
+// Like responsible to creating a like / liking a blog
+func (bc *BlogController) Like(ctx *fiber.Ctx) error {return nil}
+
+// UnLike responsible to deleting a like by id / unliking a blog
+func (bc *BlogController) UnLike(ctx *fiber.Ctx) error {return nil}

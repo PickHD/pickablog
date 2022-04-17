@@ -60,6 +60,16 @@ func setupRouter(app *application.App) {
 			v1.Get("/blog/:slug",dep.BlogController.DetailBlog)
 			v1.Put("/blog/:id",m.ValidateJWTMiddleware,m.AuthorOnlyMiddleware,dep.BlogController.UpdateBlog)
 			v1.Delete("/blog/:id",m.ValidateJWTMiddleware,m.AuthorOnlyMiddleware,dep.BlogController.DeleteBlog)
+
+			// BLOG COMMENT SECTION
+			v1.Post("/blog/:id/comment",m.ValidateJWTMiddleware,dep.BlogController.CreateComment)
+			v1.Put("/blog/:id/comment/:comment_id",m.ValidateJWTMiddleware,dep.BlogController.UpdateComment)
+			v1.Get("/blog/:id/comment",m.ValidateJWTMiddleware,dep.BlogController.ListBlog)
+			v1.Delete("/blog/:id/:comment_id",m.ValidateJWTMiddleware,dep.BlogController.DeleteComment)
+
+			// BLOG LIKE SECTION
+			v1.Post("/blog/:id/like",m.ValidateJWTMiddleware,dep.BlogController.Like)
+			v1.Delete("/blog/:id/unlike",m.ValidateJWTMiddleware,dep.BlogController.DeleteComment)
 		}
 	}
 	
