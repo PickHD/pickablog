@@ -201,7 +201,7 @@ func (cr *CommentRepository) DeleteByID(blogID int,commentID int) error {
 
 	qUpdate := `UPDATE article SET comments = ARRAY_REMOVE(comments,$1) WHERE id = $2`
 
-	_,err = tx.Exec(cr.Context,qUpdate,blogID)
+	_,err = tx.Exec(cr.Context,qUpdate,commentID,blogID)
 	if err != nil {
 		err = tx.Rollback(cr.Context)
 		if err != nil {

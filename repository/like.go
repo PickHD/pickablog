@@ -36,8 +36,8 @@ func (lr *LikeRepository) Create(blogID int,req model.LikeRequest,createdBy stri
 
 	qInsert := `INSERT INTO likes (like_count,article_id,user_id,created_by) VALUES ($1,$2,$3,$4) RETURNING id`
 
-	var commentID int
-	err = tx.QueryRow(lr.Context,qInsert,req.Like,blogID,req.UserID,createdBy).Scan(&commentID)
+	var likeID int
+	err = tx.QueryRow(lr.Context,qInsert,req.Like,blogID,req.UserID,createdBy).Scan(&likeID)
 	if err != nil {
 		err = tx.Rollback(lr.Context)
 		if err != nil {
@@ -51,7 +51,7 @@ func (lr *LikeRepository) Create(blogID int,req model.LikeRequest,createdBy stri
 
 	qUpdate := `UPDATE article SET likes = ARRAY_APPEND(likes,$1) WHERE id = $2`
 
-	_,err = tx.Exec(lr.Context,qUpdate,commentID,blogID)
+	_,err = tx.Exec(lr.Context,qUpdate,likeID,blogID)
 	if err != nil {
 		err = tx.Rollback(lr.Context)
 		if err != nil {
@@ -96,7 +96,7 @@ func (lr *LikeRepository) DeleteByID(blogID int,likeID int) error {
 
 	qUpdate := `UPDATE article SET comments = ARRAY_REMOVE(comments,$1) WHERE id = $2`
 
-	_,err = tx.Exec(lr.Context,qUpdate,blogID)
+	_,err = tx.Exec(lr.Context,qUpdate,likeID,blogID)
 	if err != nil {
 		err = tx.Rollback(lr.Context)
 		if err != nil {
