@@ -2,14 +2,15 @@ package service
 
 import (
 	"context"
+	"sync"
 
 	"github.com/PickHD/pickablog/config"
 	"github.com/PickHD/pickablog/helper"
 	"github.com/PickHD/pickablog/model"
 	"github.com/PickHD/pickablog/repository"
+	"github.com/gosimple/slug"
 	"github.com/jackc/pgx/v4"
 	"github.com/sirupsen/logrus"
-	"github.com/gosimple/slug"
 )
 
 type (
@@ -38,6 +39,7 @@ type (
 		BlogRepo repository.IBlogRepository
 		CommentRepo repository.ICommentRepository
 		LikeRepo repository.ILikeRepository
+		Mutex *sync.RWMutex
 	}
 )
 

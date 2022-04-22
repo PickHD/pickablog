@@ -1,6 +1,8 @@
 package application
 
 import (
+	"sync"
+
 	"github.com/PickHD/pickablog/controller"
 	"github.com/PickHD/pickablog/repository"
 	"github.com/PickHD/pickablog/requester"
@@ -146,6 +148,9 @@ func setupUserDependency(app *App) *controller.UserController {
 
 // setupBlogDependency is a function to set up dependencies to be used inside blog controller layer
 func setupBlogDependency(app *App) *controller.BlogController {
+	//init mutex
+	mutex := &sync.RWMutex{}
+
 	blogRepo := &repository.BlogRepository{
 		Context: app.Context,
 		Config: app.Config,
@@ -174,6 +179,7 @@ func setupBlogDependency(app *App) *controller.BlogController {
 		BlogRepo: blogRepo,
 		CommentRepo: commentRepo,
 		LikeRepo: likeRepo,
+		Mutex: mutex,
 	}
 
 	blogCtrl := &controller.BlogController{
