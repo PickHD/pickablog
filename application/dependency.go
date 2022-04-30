@@ -172,6 +172,13 @@ func setupBlogDependency(app *App) *controller.BlogController {
 		DB: app.DB,
 	}
 
+	userRepo := &repository.UserRepository{
+		Context: app.Context,
+		Config: app.Config,
+		Logger: app.Logger,
+		DB: app.DB,
+	}
+
 	blogSvc := &service.BlogService{
 		Context: app.Context,
 		Config: app.Config,
@@ -179,6 +186,7 @@ func setupBlogDependency(app *App) *controller.BlogController {
 		BlogRepo: blogRepo,
 		CommentRepo: commentRepo,
 		LikeRepo: likeRepo,
+		UserRepo: userRepo,
 		Mutex: mutex,
 	}
 

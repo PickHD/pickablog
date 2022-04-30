@@ -15,6 +15,7 @@ type (
 	// ICommentRepository is an interface that has all the function to be implemented inside comment repository
 	ICommentRepository interface {
 		Create(blogID int,req model.CommentRequest,createdBy string) error
+		GetByID(id int) (*model.ViewCommentResponse,error)
 		UpdateByID(id int,req map[string]interface{}, updatedBy string) error
 		GetAllByBlogID(blogID int,page int, size int, order string, field string) ([]model.ViewCommentResponse,int,error)
 		DeleteByID(blogID,commentID int) error
@@ -73,6 +74,37 @@ func (cr *CommentRepository) Create(blogID int, req model.CommentRequest,created
 	}
 
 	return nil
+}
+
+// GetByID repository layer for querying command to getting detail comment by id
+func (cr *CommentRepository) GetByID(id int) (*model.ViewCommentResponse,error) {
+	var comment model.ViewCommentResponse
+
+	q := `
+		SELECT
+			id,
+			comment,
+			article_id,
+			user_id,
+			created_at,
+			created_by,
+			updated_at,
+			updated_by
+		FROM comments
+		WHERE id = $1`
+	
+	row := cr.DB.QueryRow(cr.Context,q,id)
+	err := row.Scan(&comment.ID,&comment.Comment,&comment.BlogID,&comment.UserID,&comment.CreatedAt,&comment.CreatedBy,&comment.UpdatedAt,&comment.UpdatedBy)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			cr.Logger.Info(fmt.Errorf("CommentRepository.GetByID INFO %v MSG %s",err,err.Error()))
+		} else {
+			cr.Logger.Error(fmt.Errorf("CommentRepository.GetByID ERROR %v MSG %s",err,err.Error()))
+		}
+		return nil,err
+	}
+
+	return &comment,nil
 }
 
 // UpdateByID repository layer for executing command to updating a comment by id

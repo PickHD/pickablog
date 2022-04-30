@@ -39,6 +39,7 @@ type (
 		BlogRepo repository.IBlogRepository
 		CommentRepo repository.ICommentRepository
 		LikeRepo repository.ILikeRepository
+		UserRepo repository.IUserRepository
 		Mutex *sync.RWMutex
 	}
 )
@@ -226,22 +227,186 @@ func (bs *BlogService) DeleteBlogSvc(id int) error {
 }
 
 // CreateCommentSvc service layer for handling creating comments
-func (bs *BlogService) CreateCommentSvc(blogID int, req model.CommentRequest,createdBy string) error {return nil}
+func (bs *BlogService) CreateCommentSvc(blogID int, req model.CommentRequest,createdBy string) error {
+	_,err := bs.BlogRepo.GetByID(blogID)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return model.ErrBlogNotFound
+		}
+
+		return err
+	}
+
+	err = validateCreateCommentRequest(&req)
+	if err != nil {
+		return err
+	}
+
+	_,err = bs.UserRepo.GetByID(req.UserID)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return model.ErrUserNotFound
+		}
+
+		return err
+	}
+
+	bs.Mutex.Lock()
+	err = bs.CommentRepo.Create(blogID,req,createdBy)
+	if err != nil {
+		return err
+	}
+	defer bs.Mutex.Unlock()
+
+	return nil
+}
 
 // UpdateCommentSvc service layer for handling updating comment by id
-func (bs *BlogService) UpdateCommentSvc(id int, req model.CommentRequest,updatedBy string) error {return nil}
+func (bs *BlogService) UpdateCommentSvc(id int, req model.CommentRequest,updatedBy string) error {
+	_,err := bs.CommentRepo.GetByID(id)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return model.ErrCommentNotFound
+		}
+
+		return err
+	}
+
+	commentMap,err := validateUpdateCommentRequest(&req)
+	if err != nil {
+		return err
+	}
+
+	_,err = bs.UserRepo.GetByID(req.UserID)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return model.ErrUserNotFound
+		}
+
+		return err
+	}
+
+	bs.Mutex.Lock()
+	err = bs.CommentRepo.UpdateByID(id,commentMap,updatedBy)
+	if err != nil {
+		return err
+	}
+	defer bs.Mutex.Unlock()
+
+	return nil
+}
 
 // GetCommentsByBlogSvc service layer for handling getting comments with filter
-func (bs *BlogService) GetCommentsByBlogSvc(blogID int, page int, size int, order string, field string) ([]model.ViewCommentResponse,*model.Metadata,error) {return nil,nil,nil}
+func (bs *BlogService) GetCommentsByBlogSvc(blogID int, page int, size int, order string, field string) ([]model.ViewCommentResponse,*model.Metadata,error) {
+	res,totalData,err := bs.CommentRepo.GetAllByBlogID(blogID,page,size,order,field)
+	if err != nil {
+		return nil,nil,err
+	}
+
+	if totalData < 1 {
+		return []model.ViewCommentResponse{},nil,nil
+	}
+
+	totalPage := (int(totalData) + size - 1) / size
+
+	if len(res) > size {
+		res = res[:len(res)-1]
+	}
+
+	meta := helper.BuildMetaData(page,size,order,totalData,totalPage)
+
+	return res,meta,nil
+}
 
 // DeleteCommentSvc service layer for handling deleting comment with id
-func (bs *BlogService) DeleteCommentSvc(blogID int, commentID int) error {return nil}
+func (bs *BlogService) DeleteCommentSvc(blogID int, commentID int) error {
+	_,err := bs.BlogRepo.GetByID(blogID)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return model.ErrBlogNotFound
+		}
+
+		return err
+	}
+
+	_,err = bs.CommentRepo.GetByID(commentID)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return model.ErrCommentNotFound
+		}
+
+		return err
+	}
+
+	bs.Mutex.Lock()
+	err = bs.CommentRepo.DeleteByID(blogID,commentID)
+	if err != nil {
+		return err
+	}
+	defer bs.Mutex.Unlock()
+
+	return nil
+}
 
 // CreateLikeSvc service layer for handling creating likes
-func (bs *BlogService) CreateLikeSvc(blogID int, req model.LikeRequest,createdBy string) error {return nil}
+func (bs *BlogService) CreateLikeSvc(blogID int, req model.LikeRequest,createdBy string) error {
+	_,err := bs.BlogRepo.GetByID(blogID)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return model.ErrBlogNotFound
+		}
+
+		return err
+	}
+
+	_,err = bs.UserRepo.GetByID(req.UserID)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return model.ErrUserNotFound
+		}
+
+		return err
+	}
+
+	bs.Mutex.Lock()
+	err = bs.LikeRepo.Create(blogID,req,createdBy)
+	if err != nil {
+		return err
+	}
+	defer bs.Mutex.Unlock()
+
+	return nil
+}
 
 // DeleteLikeSvc service layer for handling deleting like with id
-func (bs *BlogService) DeleteLikeSvc(blogID int,likeID int) error {return nil}
+func (bs *BlogService) DeleteLikeSvc(blogID int,likeID int) error {
+	_,err := bs.BlogRepo.GetByID(blogID)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return model.ErrBlogNotFound
+		}
+
+		return err
+	}
+
+	_,err = bs.LikeRepo.GetByID(likeID)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			return model.ErrLikeNotFound
+		}
+
+		return err
+	}
+
+	bs.Mutex.Lock()
+	err = bs.LikeRepo.DeleteByID(blogID,likeID)
+	if err != nil {
+		return err
+	}
+	defer bs.Mutex.Unlock()
+
+	return nil
+}
 
 // validateCreateBlogRequest responsible to validating create blog request
 func validateCreateBlogRequest(req *model.CreateBlogRequest) error {
@@ -293,4 +458,27 @@ func validateUpdateBlogRequest(req *model.UpdateBlogRequest) (map[string]interfa
 	blogMap["user_id"] = req.UserID
 
 	return blogMap,nil
+}
+
+// validateCreateCommentRequest responsible to validating create comment request
+func validateCreateCommentRequest(req *model.CommentRequest) error {
+	if len(req.Comment) < 5 {
+		return model.ErrInvalidRequest
+	}
+
+	return nil
+}
+
+// validateUpdateCommentRequest responsible to validating update comment request
+func validateUpdateCommentRequest(req *model.CommentRequest)(map[string]interface{},error) { 
+	commentMap := make(map[string]interface{})
+
+	if len(req.Comment) < 5 {
+		return nil,model.ErrInvalidRequest
+	}
+
+	commentMap["comment"] = req.Comment
+	commentMap["user_id"] = req.UserID
+
+	return commentMap,nil
 }

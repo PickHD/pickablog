@@ -31,6 +31,10 @@ var (
 	ErrTagNotFound = errors.New("tag is not found")
 	// ErrBlogNotFound occurs when blog is not found in database
 	ErrBlogNotFound = errors.New("blog is not found")
+	// ErrCommentNotFound occurs when comment is not found in database
+	ErrCommentNotFound = errors.New("comment is not found")
+	// ErrLikeNotFound occurs when like is not found in database
+	ErrLikeNotFound = errors.New("like is not found")
 
 	// ErrInvalidPassword occurs when password user inputed is invalid
 	ErrInvalidPassword = errors.New("invalid password")

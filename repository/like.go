@@ -14,6 +14,7 @@ type (
 	// ILikeRepository is an interface that has all the function to be implemented inside like repository
 	ILikeRepository interface {
 		Create(blogID int,req model.LikeRequest,createdBy string) error
+		GetByID(id int) (*model.ViewLikeResponse,error)
 		DeleteByID(blogID int,likeID int) error
 	}
 
@@ -70,6 +71,35 @@ func (lr *LikeRepository) Create(blogID int,req model.LikeRequest,createdBy stri
 	}
 
 	return nil
+}
+
+// GetByID repository layer for querying command getting detail like by id
+func (lr *LikeRepository) GetByID(id int) (*model.ViewLikeResponse,error) {
+	var like model.ViewLikeResponse
+
+	q := `
+		SELECT 
+			id,
+			like_count,
+			user_id,
+			article_id
+		FROM likes
+		WHERE id = $1
+	`
+
+	row := lr.DB.QueryRow(lr.Context,q,id)
+	err := row.Scan(&like.ID,&like.Like,&like.UserID,&like.BlogID)
+	if err != nil {
+		if err == pgx.ErrNoRows {
+			lr.Logger.Info(fmt.Errorf("LikeRepository.GetByID Scan INFO %v MSG %s",err,err.Error()))
+		} else {
+			lr.Logger.Error(fmt.Errorf("LikeRepository.GetByID Scan ERROR %v MSG %s",err,err.Error()))
+		}
+
+		return nil,err
+	}
+
+	return &like,nil
 }
 
 // DeleteByID repository layer for executing command deleting like by id
