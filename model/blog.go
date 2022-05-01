@@ -2,13 +2,7 @@ package model
 
 import (
 	"database/sql"
-	"regexp"
 	"time"
-)
-
-var (
-	// NoSpecialChar is regex validation where str is not contains a special characters
-	NoSpecialChar *regexp.Regexp
 )
 
 type (
@@ -42,6 +36,7 @@ type (
 	ViewBlogResponse struct {
 		ID int `db:"id" json:"id"`
 		Title string `db:"title" json:"title"`
+		Slug string `db:"slug" json:"slug"`
 		Body string `db:"body" json:"body"`
 		Footer string `db:"footer" json:"footer"`
 		UserID int `db:"user_id" json:"user_id"`
@@ -57,6 +52,7 @@ type (
 	BlogResponse struct {
 		ID int `db:"id" json:"id"`
 		Title string `db:"title" json:"title"`
+		Slug string `db:"slug" json:"slug"`
 		Body string `db:"body" json:"body"`
 		Footer string `db:"footer" json:"footer"`
 		UserID int `db:"user_id" json:"user_id"`
@@ -69,7 +65,3 @@ type (
 		UpdatedBy *string `db:"updated_by" json:"updated_by,omitempty"`
 	}
 )
-
-func init() {
-	NoSpecialChar = regexp.MustCompile(`[^\w]`)
-}

@@ -1,6 +1,8 @@
 package application
 
 import (
+	"sync"
+
 	"github.com/PickHD/pickablog/controller"
 	"github.com/PickHD/pickablog/repository"
 	"github.com/PickHD/pickablog/requester"
@@ -146,7 +148,31 @@ func setupUserDependency(app *App) *controller.UserController {
 
 // setupBlogDependency is a function to set up dependencies to be used inside blog controller layer
 func setupBlogDependency(app *App) *controller.BlogController {
+	//init mutex
+	mutex := &sync.RWMutex{}
+
 	blogRepo := &repository.BlogRepository{
+		Context: app.Context,
+		Config: app.Config,
+		Logger: app.Logger,
+		DB: app.DB,
+	}
+
+	commentRepo := &repository.CommentRepository{
+		Context: app.Context,
+		Config: app.Config,
+		Logger: app.Logger,
+		DB: app.DB,
+	}
+
+	likeRepo := &repository.LikeRepository{
+		Context: app.Context,
+		Config: app.Config,
+		Logger: app.Logger,
+		DB: app.DB,
+	}
+
+	userRepo := &repository.UserRepository{
 		Context: app.Context,
 		Config: app.Config,
 		Logger: app.Logger,
@@ -158,6 +184,10 @@ func setupBlogDependency(app *App) *controller.BlogController {
 		Config: app.Config,
 		Logger: app.Logger,
 		BlogRepo: blogRepo,
+		CommentRepo: commentRepo,
+		LikeRepo: likeRepo,
+		UserRepo: userRepo,
+		Mutex: mutex,
 	}
 
 	blogCtrl := &controller.BlogController{

@@ -52,6 +52,7 @@ func (br *BlogRepository) GetAll(page int, size int, order string, field string,
 	  	SELECT
 		   	id,
 			title,
+			slug,
 			body,
 			footer,
 			user_id,
@@ -152,6 +153,7 @@ func (br *BlogRepository) GetAll(page int, size int, order string, field string,
 		err := rows.Scan(
 			&data.ID,
 			&data.Title,
+			&data.Slug,
 			&data.Body,
 			&data.Footer,
 			&data.UserID,
@@ -183,6 +185,7 @@ func (br *BlogRepository) GetBySlug(slug string) (*model.ViewBlogResponse,error)
 		SELECT 
 			id,
 			title,
+			slug,
 			body,
 			footer,
 			user_id,
@@ -201,6 +204,7 @@ func (br *BlogRepository) GetBySlug(slug string) (*model.ViewBlogResponse,error)
 	err := row.Scan(
 		&blog.ID,
 		&blog.Title,
+		&blog.Slug,
 		&blog.Body,
 		&blog.Footer,
 		&blog.UserID,
@@ -228,6 +232,7 @@ func (br *BlogRepository) GetByID(id int) (*model.ViewBlogResponse,error) {
 		SELECT 
 			id,
 			title,
+			slug,
 			body,
 			footer,
 			user_id,
@@ -246,6 +251,7 @@ func (br *BlogRepository) GetByID(id int) (*model.ViewBlogResponse,error) {
 	err := row.Scan(
 		&blog.ID,
 		&blog.Title,
+		&blog.Slug,
 		&blog.Body,
 		&blog.Footer,
 		&blog.UserID,

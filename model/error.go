@@ -31,11 +31,17 @@ var (
 	ErrTagNotFound = errors.New("tag is not found")
 	// ErrBlogNotFound occurs when blog is not found in database
 	ErrBlogNotFound = errors.New("blog is not found")
+	// ErrCommentNotFound occurs when comment is not found in database
+	ErrCommentNotFound = errors.New("comment is not found")
+	// ErrLikeNotFound occurs when like is not found in database
+	ErrLikeNotFound = errors.New("like is not found")
 
 	// ErrInvalidPassword occurs when password user inputed is invalid
 	ErrInvalidPassword = errors.New("invalid password")
 	// ErrMismatchLogin occurs when user trying mismatch login method
 	ErrMismatchLogin = errors.New("mismatch login, please use endpoint /api/v1/auth/google/login")
+	// ErrAlreadyLikeBlog occurs when user trying to liking a blog more than 1 times
+	ErrAlreadyLikeBlog = errors.New("already liking this blog")
 
 	// ErrRedisKeyNotExisted occurs when key provided is not existed
 	ErrRedisKeyNotExisted = errors.New("keys not existed")
@@ -50,4 +56,8 @@ var (
 
 	// ErrForbiddenDeleteSelf occurs when user trying deleting their account by self
 	ErrForbiddenDeleteSelf = errors.New("forbidden delete account self, make sure the id is corrent")
+	// ErrForbiddenUpdate occurs when user trying updating forbidden resource
+	ErrForbiddenUpdate = errors.New("forbidden updating data")
+	// ErrForbiddenDelete occurs when user trying deleting forbidden resource
+	ErrForbiddenDelete = errors.New("forbidden deleteing data")
 )
