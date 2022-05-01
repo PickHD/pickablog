@@ -38,7 +38,7 @@ func (cr *CommentRepository) Create(blogID int, req model.CommentRequest,created
 		return err
 	}
 
-	qInsert := `INSERT INTO comments (comment,article_id,user_id,created_by) VALUES ($1,$2,$3,$4) RETURNING id`
+	qInsert := `INSERT INTO comments (id,comment,article_id,user_id,created_by) VALUES (nextval('comment_seq'),$1,$2,$3,$4) RETURNING id`
 
 	var commentID int
 	err = tx.QueryRow(cr.Context,qInsert,req.Comment,blogID,req.UserID,createdBy).Scan(&commentID)

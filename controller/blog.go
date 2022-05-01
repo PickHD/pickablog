@@ -171,6 +171,10 @@ func (bc *BlogController) UpdateBlog(ctx *fiber.Ctx) error {
 
 	err = bc.BlogSvc.UpdateBlogSvc(id,blogReq,extData.FullName)
 	if err != nil {
+		if errors.Is(err,model.ErrForbiddenUpdate) {
+			return helper.ResponseFormatter[any](ctx,fiber.StatusForbidden,err,err.Error(),nil,nil)
+		}
+
 		if errors.Is(err,model.ErrBlogNotFound) {
 			return helper.ResponseFormatter[any](ctx,fiber.StatusNotFound,err,err.Error(),nil,nil)
 		}
@@ -196,8 +200,18 @@ func (bc *BlogController) DeleteBlog(ctx *fiber.Ctx) error {
 		return helper.ResponseFormatter[any](ctx,fiber.StatusBadRequest,nil,model.ErrBlogNotFound.Error(),nil,nil)
 	}
 
-	err = bc.BlogSvc.DeleteBlogSvc(id)
+	data := ctx.Locals(model.KeyJWTValidAccess)
+	extData,err := util.ExtractPayloadJWT(data)
 	if err != nil {
+		return helper.ResponseFormatter[any](ctx,fiber.StatusInternalServerError,err,err.Error(),nil,nil)
+	}
+
+	err = bc.BlogSvc.DeleteBlogSvc(id,extData.UserID)
+	if err != nil {
+		if errors.Is(err,model.ErrForbiddenDelete) {
+			return helper.ResponseFormatter[any](ctx,fiber.StatusForbidden,err,err.Error(),nil,nil)
+		}
+
 		if errors.Is(err,model.ErrBlogNotFound) {
 			return helper.ResponseFormatter[any](ctx,fiber.StatusNotFound,err,err.Error(),nil,nil)
 		}
@@ -209,19 +223,259 @@ func (bc *BlogController) DeleteBlog(ctx *fiber.Ctx) error {
 }
 
 // CreateComment responsible to creating a comment from controller layer
-func (bc *BlogController) CreateComment(ctx *fiber.Ctx) error {return nil}
+func (bc *BlogController) CreateComment(ctx *fiber.Ctx) error {
+	var commentReq model.CommentRequest
+
+	id,err := ctx.ParamsInt("id",0)
+	if err != nil {
+		return helper.ResponseFormatter[any](ctx,fiber.StatusBadRequest,err,err.Error(),nil,nil)
+	}
+
+	if id == 0 {
+		return helper.ResponseFormatter[any](ctx,fiber.StatusBadRequest,nil,model.ErrBlogNotFound.Error(),nil,nil)
+	}
+
+	data := ctx.Locals(model.KeyJWTValidAccess)
+	extData,err := util.ExtractPayloadJWT(data)
+	if err != nil {
+		return helper.ResponseFormatter[any](ctx,fiber.StatusInternalServerError,err,err.Error(),nil,nil)
+	}
+
+	if err := ctx.BodyParser(&commentReq); err != nil {
+		return helper.ResponseFormatter[any](ctx,fiber.StatusBadRequest,err,err.Error(),nil,nil)
+	}
+
+	commentReq.UserID = extData.UserID
+
+	err = bc.BlogSvc.CreateCommentSvc(id,commentReq,extData.FullName)
+	if err != nil {
+
+		if errors.Is(err,model.ErrUserNotFound) || errors.Is(err,model.ErrBlogNotFound) {
+			return helper.ResponseFormatter[any](ctx,fiber.StatusNotFound,err,err.Error(),nil,nil)
+		}
+
+		if errors.Is(err,model.ErrInvalidRequest) {
+			return helper.ResponseFormatter[any](ctx,fiber.StatusBadRequest,err,err.Error(),nil,nil)
+		}
+
+		return helper.ResponseFormatter[any](ctx,fiber.StatusInternalServerError,err,err.Error(),nil,nil)
+	}
+
+	return helper.ResponseFormatter[any](ctx,fiber.StatusCreated,nil,"Success Create Comment",nil,nil)
+}
 
 // UpdateComment responsible to updating a comment by id from controller layer
-func (bc *BlogController) UpdateComment(ctx *fiber.Ctx) error {return nil}
+func (bc *BlogController) UpdateComment(ctx *fiber.Ctx) error {
+	var commentReq model.CommentRequest
+
+	commentId,err := ctx.ParamsInt("comment_id",0)
+	if err != nil {
+		return helper.ResponseFormatter[any](ctx,fiber.StatusBadRequest,err,err.Error(),nil,nil)
+	}
+
+	if commentId == 0 {
+		return helper.ResponseFormatter[any](ctx,fiber.StatusBadRequest,nil,model.ErrCommentNotFound.Error(),nil,nil)
+	}
+
+	data := ctx.Locals(model.KeyJWTValidAccess)
+	extData,err := util.ExtractPayloadJWT(data)
+	if err != nil {
+		return helper.ResponseFormatter[any](ctx,fiber.StatusInternalServerError,err,err.Error(),nil,nil)
+	}
+
+	if err := ctx.BodyParser(&commentReq); err != nil {
+		return helper.ResponseFormatter[any](ctx,fiber.StatusBadRequest,err,err.Error(),nil,nil)
+	}
+
+	commentReq.UserID = extData.UserID
+
+	err = bc.BlogSvc.UpdateCommentSvc(commentId,commentReq,extData.FullName)
+	if err != nil {
+		if errors.Is(err,model.ErrForbiddenUpdate) {
+			return helper.ResponseFormatter[any](ctx,fiber.StatusForbidden,err,err.Error(),nil,nil)
+		}
+
+		if errors.Is(err,model.ErrUserNotFound) || errors.Is(err,model.ErrCommentNotFound) {
+			return helper.ResponseFormatter[any](ctx,fiber.StatusNotFound,err,err.Error(),nil,nil)
+		}
+
+		if errors.Is(err,model.ErrInvalidRequest) {
+			return helper.ResponseFormatter[any](ctx,fiber.StatusBadRequest,err,err.Error(),nil,nil)
+		}
+
+		return helper.ResponseFormatter[any](ctx,fiber.StatusInternalServerError,err,err.Error(),nil,nil)
+	}
+
+	return helper.ResponseFormatter[any](ctx,fiber.StatusOK,nil,"Success Update Comment",nil,nil)
+}
 
 // ListComment responsible to getting comments by blog id from controller layer
-func (bc *BlogController) ListComment(ctx *fiber.Ctx) error {return nil}
+func (bc *BlogController) ListComment(ctx *fiber.Ctx) error {
+	var (
+		page = 1
+		size = 10
+		order = "ASC"
+		field = "id"
+	) 
+
+	id,err := ctx.ParamsInt("id",0)
+	if err != nil {
+		return helper.ResponseFormatter[any](ctx,fiber.StatusBadRequest,err,err.Error(),nil,nil)
+	}
+
+	if id == 0 {
+		return helper.ResponseFormatter[any](ctx,fiber.StatusBadRequest,nil,model.ErrBlogNotFound.Error(),nil,nil)
+	}
+
+	if p := ctx.Query("page",""); p != "" {
+		pNum,err := strconv.Atoi(p)
+		if err == nil && pNum > 0 {
+			page = pNum
+		}
+	}
+
+	if s := ctx.Query("size",""); s != "" {
+		sNum, err := strconv.Atoi(s)
+		if err == nil && sNum > 0 {
+			size = sNum
+		}
+	}
+
+	if o := ctx.Query("order",""); o != "" {
+		if len(o) > 0 {
+			order = o
+		}
+	}
+
+	if f := ctx.Query("field",""); f != "" {
+		if len(f) > 0 {
+			field = f
+		}
+	}
+
+	data,meta,err := bc.BlogSvc.GetCommentsByBlogSvc(id,page,size,order,field)
+	if err != nil {
+		return helper.ResponseFormatter[any](ctx,fiber.StatusInternalServerError,err,err.Error(),nil,nil)
+	}
+
+	return helper.ResponseFormatter[any](ctx,fiber.StatusOK,nil,"Success Getting all Comments",data,meta)
+}
 
 // DeleteComment responsible to deleting a comment by id from controller layer
-func (bc *BlogController) DeleteComment(ctx *fiber.Ctx) error {return nil}
+func (bc *BlogController) DeleteComment(ctx *fiber.Ctx) error {
+	blogID,err := ctx.ParamsInt("id",0)
+	if err != nil {
+		return helper.ResponseFormatter[any](ctx,fiber.StatusBadRequest,err,err.Error(),nil,nil)
+	}
+
+	if blogID == 0 {
+		return helper.ResponseFormatter[any](ctx,fiber.StatusBadRequest,nil,model.ErrBlogNotFound.Error(),nil,nil)
+	}
+
+	commentID,err := ctx.ParamsInt("comment_id",0)
+	if err != nil {
+		return helper.ResponseFormatter[any](ctx,fiber.StatusBadRequest,err,err.Error(),nil,nil)
+	}
+
+	if commentID == 0 {
+		return helper.ResponseFormatter[any](ctx,fiber.StatusBadRequest,nil,model.ErrCommentNotFound.Error(),nil,nil)
+	}
+
+	data := ctx.Locals(model.KeyJWTValidAccess)
+	extData,err := util.ExtractPayloadJWT(data)
+	if err != nil {
+		return helper.ResponseFormatter[any](ctx,fiber.StatusInternalServerError,err,err.Error(),nil,nil)
+	}
+
+	err = bc.BlogSvc.DeleteCommentSvc(blogID,commentID,extData.UserID)
+	if err != nil {
+		if errors.Is(err,model.ErrForbiddenDelete) {
+			return helper.ResponseFormatter[any](ctx,fiber.StatusForbidden,err,err.Error(),nil,nil)
+		}
+
+		if errors.Is(err,model.ErrBlogNotFound) || errors.Is(err,model.ErrCommentNotFound) {
+			return helper.ResponseFormatter[any](ctx,fiber.StatusNotFound,err,err.Error(),nil,nil)
+		}
+
+		return helper.ResponseFormatter[any](ctx,fiber.StatusInternalServerError,err,err.Error(),nil,nil)
+	}
+
+	return helper.ResponseFormatter[any](ctx,fiber.StatusOK,nil,"Success Delete Comment",nil,nil)
+}
 
 // Like responsible to creating a like / liking a blog
-func (bc *BlogController) Like(ctx *fiber.Ctx) error {return nil}
+func (bc *BlogController) Like(ctx *fiber.Ctx) error {
+	var likeReq model.LikeRequest
+
+	id,err := ctx.ParamsInt("id",0)
+	if err != nil {
+		return helper.ResponseFormatter[any](ctx,fiber.StatusBadRequest,err,err.Error(),nil,nil)
+	}
+
+	if id == 0 {
+		return helper.ResponseFormatter[any](ctx,fiber.StatusBadRequest,nil,model.ErrBlogNotFound.Error(),nil,nil)
+	}
+
+	data := ctx.Locals(model.KeyJWTValidAccess)
+	extData,err := util.ExtractPayloadJWT(data)
+	if err != nil {
+		return helper.ResponseFormatter[any](ctx,fiber.StatusInternalServerError,err,err.Error(),nil,nil)
+	}
+
+	likeReq.Like = 1
+	likeReq.UserID = extData.UserID
+
+	err = bc.BlogSvc.CreateLikeSvc(id,likeReq,extData.FullName)
+	if err != nil {
+
+		if errors.Is(err,model.ErrUserNotFound) || errors.Is(err,model.ErrBlogNotFound) {
+			return helper.ResponseFormatter[any](ctx,fiber.StatusNotFound,err,err.Error(),nil,nil)
+		}
+
+		if errors.Is(err,model.ErrInvalidRequest) || errors.Is(err,model.ErrAlreadyLikeBlog) {
+			return helper.ResponseFormatter[any](ctx,fiber.StatusBadRequest,err,err.Error(),nil,nil)
+		}
+
+		return helper.ResponseFormatter[any](ctx,fiber.StatusInternalServerError,err,err.Error(),nil,nil)
+	}
+
+	return helper.ResponseFormatter[any](ctx,fiber.StatusCreated,nil,"Success Like",nil,nil)
+}
 
 // UnLike responsible to deleting a like by id / unliking a blog
-func (bc *BlogController) UnLike(ctx *fiber.Ctx) error {return nil}
+func (bc *BlogController) UnLike(ctx *fiber.Ctx) error {
+	blogID,err := ctx.ParamsInt("id",0)
+	if err != nil {
+		return helper.ResponseFormatter[any](ctx,fiber.StatusBadRequest,err,err.Error(),nil,nil)
+	}
+
+	if blogID == 0 {
+		return helper.ResponseFormatter[any](ctx,fiber.StatusBadRequest,nil,model.ErrBlogNotFound.Error(),nil,nil)
+	}
+
+	likeID,err := ctx.ParamsInt("like_id",0)
+	if err != nil {
+		return helper.ResponseFormatter[any](ctx,fiber.StatusBadRequest,err,err.Error(),nil,nil)
+	}
+
+	if likeID == 0 {
+		return helper.ResponseFormatter[any](ctx,fiber.StatusBadRequest,nil,model.ErrLikeNotFound.Error(),nil,nil)
+	}
+
+	data := ctx.Locals(model.KeyJWTValidAccess)
+	extData,err := util.ExtractPayloadJWT(data)
+	if err != nil {
+		return helper.ResponseFormatter[any](ctx,fiber.StatusInternalServerError,err,err.Error(),nil,nil)
+	}
+
+	err = bc.BlogSvc.DeleteLikeSvc(blogID,likeID,extData.UserID)
+	if err != nil {
+		if errors.Is(err,model.ErrBlogNotFound) || errors.Is(err,model.ErrLikeNotFound) {
+			return helper.ResponseFormatter[any](ctx,fiber.StatusNotFound,err,err.Error(),nil,nil)
+		}
+
+		return helper.ResponseFormatter[any](ctx,fiber.StatusInternalServerError,err,err.Error(),nil,nil)
+	}
+
+	return helper.ResponseFormatter[any](ctx,fiber.StatusOK,nil,"Success UnLike",nil,nil)
+}
