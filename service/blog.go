@@ -194,6 +194,8 @@ func (bs *BlogService) UpdateBlogSvc(id int, req model.UpdateBlogRequest, update
 		if err == pgx.ErrNoRows {
 			return model.ErrBlogNotFound
 		}
+
+		return err
 	}
 
 	blogMap,err := validateUpdateBlogRequest(currentBlog,&req)
@@ -216,6 +218,8 @@ func (bs *BlogService) DeleteBlogSvc(id int,userID int) error {
 		if err == pgx.ErrNoRows {
 			return model.ErrBlogNotFound
 		}
+
+		return err
 	}
 
 	if currentBlog.UserID != userID {
